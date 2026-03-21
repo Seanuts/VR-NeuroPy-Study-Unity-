@@ -1,0 +1,1 @@
+git lfs track "*.psd" "*.fbx" "*.obj" "*.mp4" "*.wav" "*.zip" "*.dll"
