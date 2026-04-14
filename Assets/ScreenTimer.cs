@@ -1,57 +1,93 @@
 using UnityEngine;
 using TMPro;
 
-public class ScreenTimer : MonoBehaviour{
+// 1. We create a custom container that holds BOTH the page and its specific timer.
+// [System.Serializable] tells Unity to show this custom group in the Inspector.
+[System.Serializable]
+public class StudyPage
+{
+    public GameObject pageObject;
+    public float displayTime = 60f; // Default to 60s, but you can change this in the Inspector
+}
+
+public class ScreenTimer : MonoBehaviour
+{
     [Header("Timer Settings")]
     public TextMeshProUGUI timerText; 
-    public float timePerScreen = 60f; //starting time of each new screen
     private float timeRemaining;
     private bool timerIsRunning = false;
 
     [Header("Page Settings")]
-    public GameObject[] pages; 
+    // 2. We use our new custom class instead of a standard GameObject array
+    public StudyPage[] pages; 
     private int currentPageIndex = 0; 
 
-    void Start(){
-        timeRemaining = timePerScreen;
-        timerIsRunning = true; 
+    void Start()
+    {
+        // 3. Check if we actually have pages to avoid errors
+        if (pages.Length > 0)
+        {
+            // Set the starting time to the FIRST page's specific time
+            timeRemaining = pages[0].displayTime;
+            timerIsRunning = true; 
 
-        for (int i = 0; i < pages.Length; i++){
-            if (pages[i] != null){
-                pages[i].SetActive(i == 0); //only sets to true if very first item (i= 0)
+            // Turn off all pages except the first one
+            for (int i = 0; i < pages.Length; i++)
+            {
+                if (pages[i].pageObject != null)
+                {
+                    pages[i].pageObject.SetActive(i == 0); 
+                }
             }
+        }
+        else
+        {
+            Debug.LogWarning("You haven't assigned any pages in the Inspector!");
         }
     }
 
-    void Update(){
-        if (timerIsRunning){
-            if (timeRemaining > 0){
+    void Update()
+    {
+        if (timerIsRunning)
+        {
+            if (timeRemaining > 0)
+            {
                 timeRemaining -= Time.deltaTime; 
                 UpdateTimerDisplay(timeRemaining);
             }
-            else{
+            else
+            {
                 AdvanceToNextPage();
             }
         }
     }
 
-    void AdvanceToNextPage(){
-        if (pages[currentPageIndex] != null){
-            pages[currentPageIndex].SetActive(false);
+    void AdvanceToNextPage()
+    {
+        // Turn off the current page
+        if (pages[currentPageIndex].pageObject != null)
+        {
+            pages[currentPageIndex].pageObject.SetActive(false);
         }
 
         currentPageIndex++; 
 
-        if (currentPageIndex < pages.Length){ //still has pages?
-            if (pages[currentPageIndex] != null){//turn on new page
-
-                pages[currentPageIndex].SetActive(true);
+        // Are there still pages left?
+        if (currentPageIndex < pages.Length) 
+        { 
+            // Turn on the new page
+            if (pages[currentPageIndex].pageObject != null)
+            {
+                pages[currentPageIndex].pageObject.SetActive(true);
             }
     
-            timeRemaining = timePerScreen;//reset timer
-            Debug.Log("Swapped to page: " + (currentPageIndex + 1));
+            // 4. Reset the timer using the NEW page's custom time
+            timeRemaining = pages[currentPageIndex].displayTime;
+            
+            Debug.Log("Swapped to page: " + (currentPageIndex + 1) + ". Timer set for: " + timeRemaining + " seconds.");
         }
-        else{
+        else
+        {
             timeRemaining = 0;
             timerIsRunning = false;
             timerText.text = "00:00";
@@ -59,7 +95,8 @@ public class ScreenTimer : MonoBehaviour{
         }
     }
 
-    void UpdateTimerDisplay(float timeToDisplay){
+    void UpdateTimerDisplay(float timeToDisplay)
+    {
         timeToDisplay += 1; 
         float minutes = Mathf.FloorToInt(timeToDisplay / 60);
         float seconds = Mathf.FloorToInt(timeToDisplay % 60);
