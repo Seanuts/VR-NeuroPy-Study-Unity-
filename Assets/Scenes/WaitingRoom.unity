@@ -1953,9 +1953,7 @@ MonoBehaviour:
   timerText: {fileID: 7639583}
   pages:
   - pageObject: {fileID: 1412914286}
-    displayTime: 3
-  sceneToLoadName: UI_Scene_Main_Static
-  sceneToLoadAsset: {fileID: 102900000, guid: 99fd47bbc72ab5c4e8a524bea081e231, type: 3}
+    displayTime: 20
 --- !u!1 &652862664
 GameObject:
   m_ObjectHideFlags: 0
