@@ -2,14 +2,12 @@ using UnityEngine;
 using TMPro;
 
 [System.Serializable]
-public class StudyPage
-{
+public class StudyPage{
     public GameObject pageObject;
     public float displayTime = 60f; 
 }
 
-public class ScreenTimer : MonoBehaviour
-{
+public class ScreenTimer : MonoBehaviour{
     [Header("Timer Settings")]
     public TextMeshProUGUI timerText; 
     private float timeRemaining;
@@ -19,17 +17,13 @@ public class ScreenTimer : MonoBehaviour
     public StudyPage[] pages; 
     private int currentPageIndex = 0; 
 
-    void Start()
-    {
-        if (pages.Length > 0)
-        {
+    void Start(){
+        if (pages.Length > 0){
             timeRemaining = pages[0].displayTime;
             timerIsRunning = true; 
 
-            for (int i = 0; i < pages.Length; i++)
-            {
-                if (pages[i].pageObject != null)
-                {
+            for (int i = 0; i < pages.Length; i++){
+                if (pages[i].pageObject != null){
                     pages[i].pageObject.SetActive(i == 0); 
                 }
             }
@@ -40,17 +34,13 @@ public class ScreenTimer : MonoBehaviour
         }
     }
 
-    void Update()
-    {
-        if (timerIsRunning)
-        {
-            if (timeRemaining > 0)
-            {
+    void Update(){
+        if (timerIsRunning){
+            if (timeRemaining > 0){
                 timeRemaining -= Time.deltaTime; 
                 UpdateTimerDisplay(timeRemaining);
             }
-            else
-            {
+            else{
                 AdvanceToNextPage();
             }
         }
@@ -58,41 +48,34 @@ public class ScreenTimer : MonoBehaviour
 
     void AdvanceToNextPage()
     {
-        if (pages[currentPageIndex].pageObject != null)
-        {
+        if (pages[currentPageIndex].pageObject != null){
             pages[currentPageIndex].pageObject.SetActive(false);
         }
 
         currentPageIndex++; 
 
-        if (currentPageIndex < pages.Length) 
-        { 
-            if (pages[currentPageIndex].pageObject != null)
-            {
+        if (currentPageIndex < pages.Length) { 
+            if (pages[currentPageIndex].pageObject != null){
                 pages[currentPageIndex].pageObject.SetActive(true);
             }
     
             timeRemaining = pages[currentPageIndex].displayTime;
         }
-        else
-        {
+        else{
             timeRemaining = 0;
             timerIsRunning = false;
             
             // TELL THE MASTER SCRIPT WE ARE DONE!
-            if (StudyCoordinator.Instance != null)
-            {
+            if (StudyCoordinator.Instance != null){
                 StudyCoordinator.Instance.OnPhaseComplete();
             }
-            else
-            {
-                Debug.LogError("No StudyCoordinator found in the scene! Make sure you started from the Start scene.");
+            else{
+                Debug.LogError("No StudyCoordinator found in the scene, make sure you started from the Start scene.");
             }
         }
     }
 
-    void UpdateTimerDisplay(float timeToDisplay)
-    {
+    void UpdateTimerDisplay(float timeToDisplay){
         timeToDisplay += 1; 
         float minutes = Mathf.FloorToInt(timeToDisplay / 60);
         float seconds = Mathf.FloorToInt(timeToDisplay % 60);

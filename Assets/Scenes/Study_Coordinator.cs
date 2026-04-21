@@ -4,9 +4,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.XR.Management;
 
-public class StudyCoordinator : MonoBehaviour
-{
-    // This makes sure only ONE master script exists at a time
+public class StudyCoordinator : MonoBehaviour{ //makes sure only ONE master script exists at a time
+
     public static StudyCoordinator Instance;
 
     [Header("Drag Scene Files Here")]
@@ -24,8 +23,7 @@ public class StudyCoordinator : MonoBehaviour
     private List<string> sceneQueue = new List<string>();
 
 #if UNITY_EDITOR
-    private void OnValidate()
-    {
+    private void OnValidate(){
         // Extract typo-free names from the dragged files
         if (scene1_VR != null) nameVR = scene1_VR.name;
         if (scene2_VR_NonInteractive != null) nameVRNonInt = scene2_VR_NonInteractive.name;
@@ -34,31 +32,24 @@ public class StudyCoordinator : MonoBehaviour
     }
 #endif
 
-    void Awake()
-    {
+    void Awake(){
         // Keep this manager alive across all scenes
-        if (Instance == null)
-        {
+        if (Instance == null){
             Instance = this;
             DontDestroyOnLoad(gameObject);
             InitializeStudy();
         }
-        else
-        {
+        else{
             Destroy(gameObject);
         }
     }
 
-    void InitializeStudy()
-    {
-        // Add the three test scenes to a list
+    void InitializeStudy(){
         sceneQueue.Add(nameVR);
         sceneQueue.Add(nameVRNonInt);
         sceneQueue.Add(nameDesktop);
 
-        // Shuffle the list randomly
-        for (int i = 0; i < sceneQueue.Count; i++)
-        {
+        for (int i = 0; i < sceneQueue.Count; i++){
             string temp = sceneQueue[i];
             int randomIndex = Random.Range(i, sceneQueue.Count);
             sceneQueue[i] = sceneQueue[randomIndex];
@@ -68,61 +59,44 @@ public class StudyCoordinator : MonoBehaviour
         Debug.Log("Study Order Generated: " + sceneQueue[0] + " -> " + sceneQueue[1] + " -> " + sceneQueue[2]);
     }
 
-    // Individual ScreenTimers will call this when they hit 00:00
-    public void OnPhaseComplete()
-    {
-        if (sceneQueue.Count > 0)
-        {
+
+    public void OnPhaseComplete(){// Individual ScreenTimers will call this when they hit 00:00
+        if (sceneQueue.Count > 0){
             StartCoroutine(HandleBreakAndTransition());
         }
-        else
-        {
+        else{
             Debug.Log("Entire Study Complete!");
-            // Optional: Load a final "Thank You" scene here
         }
     }
 
     IEnumerator HandleBreakAndTransition()
     {
-        // 1. Turn OFF VR so the break scene is forced to the Desktop monitor
-        StopVR();
+        StopVR();// 1. Turn OFF VR so the break scene is forced to the Desktop monitor
 
-        // 2. Load the Intermission Scene
-        SceneManager.LoadScene(nameIntermission);
-
-        // 3. Wait for the 2 minute delay
-        yield return new WaitForSeconds(breakDurationSeconds);
-
-        // 4. Get the next random scene from the list
-        string nextScene = sceneQueue[0];
+        SceneManager.LoadScene(nameIntermission); // 2. Load the Intermission Scene
+        yield return new WaitForSeconds(breakDurationSeconds); // 3. Wait for the 2 minute delay
+        string nextScene = sceneQueue[0];// 4. Get the next random scene from the list
         sceneQueue.RemoveAt(0); // Remove it so it doesn't play again
 
         // 5. If the next scene is a VR scene, turn the headset back ON
-        if (nextScene == nameVR || nextScene == nameVRNonInt)
-        {
+        if (nextScene == nameVR || nextScene == nameVRNonInt){
             yield return StartCoroutine(StartVR());
         }
-
         // 6. Finally, load the actual study scene
         SceneManager.LoadScene(nextScene);
     }
 
-    void StopVR()
-    {
-        if (XRGeneralSettings.Instance != null && XRGeneralSettings.Instance.Manager.isInitializationComplete)
-        {
+    void StopVR(){
+        if (XRGeneralSettings.Instance != null && XRGeneralSettings.Instance.Manager.isInitializationComplete){
             XRGeneralSettings.Instance.Manager.StopSubsystems();
             XRGeneralSettings.Instance.Manager.DeinitializeLoader();
         }
     }
 
-    IEnumerator StartVR()
-    {
-        if (XRGeneralSettings.Instance != null && !XRGeneralSettings.Instance.Manager.isInitializationComplete)
-        {
+    IEnumerator StartVR(){
+        if (XRGeneralSettings.Instance != null && !XRGeneralSettings.Instance.Manager.isInitializationComplete){
             yield return XRGeneralSettings.Instance.Manager.InitializeLoader();
-            if (XRGeneralSettings.Instance.Manager.activeLoader != null)
-            {
+            if (XRGeneralSettings.Instance.Manager.activeLoader != null){
                 XRGeneralSettings.Instance.Manager.StartSubsystems();
             }
         }
