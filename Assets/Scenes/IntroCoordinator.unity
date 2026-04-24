@@ -877,7 +877,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 1
+  m_PresetInfoIsWorld: 0
 --- !u!223 &612869415
 Canvas:
   m_ObjectHideFlags: 0
@@ -887,7 +887,7 @@ Canvas:
   m_GameObject: {fileID: 612869411}
   m_Enabled: 1
   serializedVersion: 3
-  m_RenderMode: 2
+  m_RenderMode: 0
   m_Camera: {fileID: 0}
   m_PlaneDistance: 100
   m_PixelPerfect: 0
@@ -1152,7 +1152,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 830603104}
-  - component: {fileID: 830603103}
+  - component: {fileID: 830603105}
   m_Layer: 0
   m_Name: Study_Manager
   m_TagString: Untagged
@@ -1160,27 +1160,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &830603103
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 830603102}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 89637cc33953b7549814d4d68b8a38d1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::StudyCoordinator
-  scene1_VR: {fileID: 102900000, guid: bc0def574309d064c93320da187cce62, type: 3}
-  scene2_VR_NonInteractive: {fileID: 102900000, guid: c7e772ea20cf7574fb24d50f3ed5929a, type: 3}
-  scene3_Desktop: {fileID: 102900000, guid: 99fd47bbc72ab5c4e8a524bea081e231, type: 3}
-  intermissionScene: {fileID: 102900000, guid: 5b076f6a878f82a4aacd8bfffc6b1758, type: 3}
-  nameVR: UI_Scene_Main_3D
-  nameVRNonInt: UI_Scene_Main_3D_NonInteractive
-  nameDesktop: UI_Scene_Main_Static
-  nameIntermission: WaitingRoom
-  breakDurationSeconds: 10
 --- !u!4 &830603104
 Transform:
   m_ObjectHideFlags: 0
@@ -1196,6 +1175,28 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &830603105
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 830603102}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f7439d856032373429b19f67e22b7716, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StudyCoordinatorV2
+  debugMode: 0
+  scene1_VR: {fileID: 102900000, guid: bc0def574309d064c93320da187cce62, type: 3}
+  scene2_VR_NonInteractive: {fileID: 102900000, guid: c7e772ea20cf7574fb24d50f3ed5929a, type: 3}
+  scene3_Desktop: {fileID: 102900000, guid: 99fd47bbc72ab5c4e8a524bea081e231, type: 3}
+  intermissionScene: {fileID: 102900000, guid: 5b076f6a878f82a4aacd8bfffc6b1758, type: 3}
+  nameVR: 3D_Interactive
+  nameVRNonInt: 3D_NonInteractive
+  nameDesktop: 2D_Static
+  nameIntermission: WaitingRoom
+  breakDurationSeconds: 10
 --- !u!1 &853127344
 GameObject:
   m_ObjectHideFlags: 0

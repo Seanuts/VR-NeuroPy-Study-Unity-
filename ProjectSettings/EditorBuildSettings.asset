@@ -9,19 +9,19 @@ EditorBuildSettings:
     path: Assets/Scenes/SampleScene.unity
     guid: 55daccc09a3b69647bbab145b54a3ab3
   - enabled: 1
-    path: Assets/Scenes/Scene_00_Start.unity
+    path: Assets/Scenes/IntroCoordinator.unity
     guid: 3041ee19608eacb4796cad6304420334
   - enabled: 1
-    path: Assets/Scenes/UI_Scene_Main_3D_NonInteractive.unity
+    path: Assets/Scenes/3D_NonInteractive.unity
     guid: c7e772ea20cf7574fb24d50f3ed5929a
   - enabled: 1
-    path: Assets/Scenes/UI_Scene_Main_Static.unity
+    path: Assets/Scenes/2D_Static.unity
     guid: 99fd47bbc72ab5c4e8a524bea081e231
   - enabled: 1
     path: Assets/Scenes/WaitingRoom.unity
     guid: 5b076f6a878f82a4aacd8bfffc6b1758
   - enabled: 1
-    path: Assets/Scenes/UI_Scene_Main_3D.unity
+    path: Assets/Scenes/3D_Interactive.unity
     guid: bc0def574309d064c93320da187cce62
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: bfa1182bd221b4ca89619141f66f1260, type: 2}
