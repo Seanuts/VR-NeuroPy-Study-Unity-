@@ -23,7 +23,7 @@ class LatencyBridge:
             
             if data == b"PING":
                 # 2. Command C++ (using arbitrary safe coordinates for the test)
-                payload = struct.pack('2i', 10, 10) 
+                payload = struct.pack('2i', 50, 84) 
                 self.c_sock.sendto(payload, (self.cpp_ip, self.cpp_port))
                 
                 try:
@@ -41,6 +41,6 @@ class LatencyBridge:
                     self.u_sock.sendto(b"PONG_NO_CPP", unity_addr)
 
 if __name__ == "__main__":
-    # Ensure cpp_ip matches the Windows 7 machine's Ethernet IP for later
-    bridge = LatencyBridge(cpp_ip="192.168.1.2") 
+    # Pointing exactly to the Windows 7 machine's auto-assigned IP
+    bridge = LatencyBridge(cpp_ip="169.254.99.1") 
     bridge.listen_and_bridge()
