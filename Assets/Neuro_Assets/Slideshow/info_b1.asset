@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f59101f9f0c18e74aba7228e60820b17, type: 3}
+  m_Name: info_b1
+  m_EditorClassIdentifier: Assembly-CSharp::Slide
+  timeLimit: 360
+  slideType: 1
+  question: 
+  answerChoices: []
+  correctAnswerIndex: 0
+  infographic: {fileID: 21300000, guid: b43820fafd5d76b439577626b8fd2185, type: 3}

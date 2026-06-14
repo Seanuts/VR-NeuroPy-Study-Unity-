@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f59101f9f0c18e74aba7228e60820b17, type: 3}
+  m_Name: instruct_hybrid
+  m_EditorClassIdentifier: Assembly-CSharp::Slide
+  timeLimit: 120
+  slideType: 2
+  question: 
+  answerChoices: []
+  correctAnswerIndex: 0
+  infographic: {fileID: 0}
+  instruction: 'HYBRID EXPERIENCE (Headset On)
+
+
+    You are about to complete a
+    learning activity in virtual reality using a 2D interface displayed within the
+    VR environment.
+
+
+    The activity consists of a series of infographic slides
+    presented in a random order, followed by a short multiple-choice quiz designed
+    to assess your understanding of the material.
+
+
+    A timer is displayed in the
+    top-left corner of each slide. When the timer reaches zero, the next slide will
+    automatically appear. If a quiz question is not answered before time expires,
+    it will be marked as incorrect.
+
+
+    Use the VR controllers to interact with
+    the interface. Review the content carefully and answer each question to the best
+    of your ability.
+
+'

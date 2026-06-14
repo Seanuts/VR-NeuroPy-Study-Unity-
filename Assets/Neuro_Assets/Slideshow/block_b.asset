@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e5ce64e58444ff43ab866a63f3f14ab, type: 3}
+  m_Name: block_b
+  m_EditorClassIdentifier: Assembly-CSharp::SlideBlock
+  infographicSlides:
+  - {fileID: 11400000, guid: 3593dfdd99b75c548b2b093e4c6b5b59, type: 2}
+  - {fileID: 11400000, guid: 325783dddc11730459af305a6324dab1, type: 2}
+  - {fileID: 11400000, guid: 6ce1281bb31d97340a424b5543fc43bc, type: 2}
+  questionSlides:
+  - {fileID: 11400000, guid: f0fe15788220c3247af1ddb5d3f31ed2, type: 2}
+  - {fileID: 11400000, guid: 872850ca0d6515f48bb6061d765a98ce, type: 2}
+  - {fileID: 11400000, guid: 4ad388df504d1ac45a2761b384753d55, type: 2}
