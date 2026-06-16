@@ -5,6 +5,7 @@ public class BrainController : MonoBehaviour
     // Selected brain groups
     [SerializeField] GameObject brain;
     [SerializeField] GameObject hippocampus;
+    [SerializeField] GameObject temporal_lobe;
 
 
     // Materials

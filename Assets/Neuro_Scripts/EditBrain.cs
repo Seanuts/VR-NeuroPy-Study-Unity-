@@ -1,3 +1,4 @@
+// THIS SCRIPT IS TEMPORARY... USED TO CONFIGURE THE BASE MATERIAL FOR 3rd PARTY ASSET
 using UnityEngine;
 
 public class EditBrain : MonoBehaviour
