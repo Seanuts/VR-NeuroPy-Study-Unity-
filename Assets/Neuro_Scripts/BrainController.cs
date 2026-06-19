@@ -15,6 +15,7 @@ public class BrainController : MonoBehaviour
     void Start()
     {
         SetMaterialRecursive(brain, transparent);
+        SetMaterialRecursive(temporal_lobe, highlight);
     }
 
 
