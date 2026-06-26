@@ -104,5 +104,6 @@ InitTestScene*.unity*
 *.exe
 *.obj
 *.pdb
+*.venv
 
 bridge/mingw32_m/

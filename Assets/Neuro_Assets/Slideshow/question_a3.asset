@@ -14,12 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Slide
   timeLimit: 60
   slideType: 0
-  question: Where is hippocampus located?
-  answerChoices:
-  - Deep within frontal lobe
-  - Deep within occipital lobe
-  - Deep within parietal lobe
-  - Deep within the temporal lobe
-  correctAnswerIndex: 3
+  question: 'A patient is unable to move the right side of their body following a
+    stroke. Based on this symptom, which highlighted brain structure is most likely
+    damaged?   '
+  questionGraphic: {fileID: 21300000, guid: cbb012fd52eecf044b5365b38efa143c, type: 3}
+  answerChoiceRegions: 01000000030000000200000009000000
+  correctAnsIndex: 0
   infographic: {fileID: 0}
-  instruction: 
+  curRegion: 0
+  instructions: 

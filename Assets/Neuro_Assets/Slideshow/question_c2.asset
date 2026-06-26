@@ -14,12 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Slide
   timeLimit: 60
   slideType: 0
-  question: Why is the brainstem considered the most "vital" part of the brain?
-  answerChoices:
-  - It is responsible for mathematical calculations
-  - It allows us to recognize different musical instruments
-  - It stores our earliest childhood memories
-  - It controls involuntary life-support functions like breathing
-  correctAnswerIndex: 3
+  question: 'A patient has ataxia (movement coordination disorder). Which highlighted
+    brain structure is likely damaged?  '
+  questionGraphic: {fileID: 21300000, guid: ec3ae2beba524b9448c41b0930b46a16, type: 3}
+  answerChoiceRegions: 0000000003000000090000000b000000
+  correctAnsIndex: 3
   infographic: {fileID: 0}
-  instruction: 
+  curRegion: 0
+  instructions: 

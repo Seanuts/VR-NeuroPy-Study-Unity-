@@ -15,6 +15,9 @@ MonoBehaviour:
   timeLimit: 360
   slideType: 1
   question: 
-  answerChoices: []
-  correctAnswerIndex: 0
-  infographic: {fileID: 21300000, guid: 4a8b8a59a5e1ca749ad02a641f726c4e, type: 3}
+  questionGraphic: {fileID: 0}
+  answerChoiceRegions: 
+  correctAnsIndex: 0
+  infographic: {fileID: 21300000, guid: 9cd7ffe11eb051442a2ad8852ed042e0, type: 3}
+  curRegion: 11
+  instructions: 

@@ -14,12 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Slide
   timeLimit: 60
   slideType: 0
-  question: Which cognitive process is the frontal lobe most responsible for?
-  answerChoices:
-  - Processing raw visual data
-  - 'Regulating heartbeat and breathing '
-  - Executive functions and decision-making
-  - Language processing
-  correctAnswerIndex: 2
+  question: 'Which lobe is primarily associated with executive functions, planning,
+    and decision-making?  '
+  questionGraphic: {fileID: 21300000, guid: e83263e13b95bc145adc3312c079ada7, type: 3}
+  answerChoiceRegions: 00000000050000000600000007000000
+  correctAnsIndex: 0
   infographic: {fileID: 0}
-  instruction: 
+  curRegion: 0
+  instructions: 

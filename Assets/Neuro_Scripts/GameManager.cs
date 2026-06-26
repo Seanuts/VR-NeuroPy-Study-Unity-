@@ -20,11 +20,11 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
+    [SerializeField] public BrainController InteractiveBrain;
+    
     [SerializeField] SlideshowController vrSlideshow;
     [SerializeField] SlideshowController desktopSlideshow;
-    // TODO: figure this out
-    [SerializeField] GameObject interactiveBrain;
-
+    
     // instruction slides
     [SerializeField] Slide vrIntroSlide;
     [SerializeField] Slide desktopIntroSlide;
@@ -58,7 +58,7 @@ public class GameManager : MonoBehaviour
         InitializeMode(curState);
     }
 
-    void InitializeMode(int state)
+    public void InitializeMode(int state)
     {
         GameModes curMode = modeOrder[state];
         SlideBlock curBlock = blockOrder[state];
@@ -67,21 +67,21 @@ public class GameManager : MonoBehaviour
             case GameModes.Desktop:
                 desktopSlideshow.gameObject.SetActive(true);
                 vrSlideshow.gameObject.SetActive(false);
-                interactiveBrain.gameObject.SetActive(false);
+                InteractiveBrain.gameObject.SetActive(false);
                 desktopSlideshow.StartSlideshow(desktopIntroSlide, curBlock);
                 break;
             
             case GameModes.Hybrid:
                 desktopSlideshow.gameObject.SetActive(false);
                 vrSlideshow.gameObject.SetActive(true);
-                interactiveBrain.gameObject.SetActive(false);
+                InteractiveBrain.gameObject.SetActive(false);
                 vrSlideshow.StartSlideshow(hybridIntroSlide, curBlock);
                 break;
             
             case GameModes.VR:
                 desktopSlideshow.gameObject.SetActive(false);
                 vrSlideshow.gameObject.SetActive(true);
-                interactiveBrain.gameObject.SetActive(true);
+                InteractiveBrain.gameObject.SetActive(true);
                 vrSlideshow.StartSlideshow(vrIntroSlide, curBlock);
                 break;
         }
@@ -106,9 +106,4 @@ public class GameManager : MonoBehaviour
         }
     }
 
-
-    // Update is called once per frame
-    //void Update()
-    //{
-    //}
 }

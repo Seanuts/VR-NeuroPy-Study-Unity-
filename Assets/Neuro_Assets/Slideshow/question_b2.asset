@@ -14,12 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Slide
   timeLimit: 60
   slideType: 0
-  question: 'What is the primary role of the Primary Somatosensory Cortex (S1)? '
-  answerChoices:
-  - Planning complex motor sequences
-  - Coordinating balance while walking
-  - 'Interpreting touch, pressure, and pain from the body '
-  - Processing auditory melodies
-  correctAnswerIndex: 2
+  question: 'Which highlighted brain structure is primarily responsible for interpreting
+    touch, pressure, and pain from the body?   '
+  questionGraphic: {fileID: 21300000, guid: 3acc7569e90241c45afbf822e808e146, type: 3}
+  answerChoiceRegions: 08000000000000000900000006000000
+  correctAnsIndex: 0
   infographic: {fileID: 0}
-  instruction: 
+  curRegion: 0
+  instructions: 

@@ -15,31 +15,20 @@ MonoBehaviour:
   timeLimit: 120
   slideType: 2
   question: 
-  answerChoices: []
-  correctAnswerIndex: 0
+  questionGraphic: {fileID: 0}
+  answerChoiceRegions: 
+  correctAnsIndex: 0
   infographic: {fileID: 0}
-  instruction: 'FULL VR EXPERIENCE (Headset On)
-
-
-    You are about to complete a
-    fully immersive virtual reality learning activity.
-
-
-    The activity consists
-    of a series of infographic slides presented in a random order, followed by a
-    short multiple-choice quiz designed to assess your understanding of the material.
-
-
-    A
-    timer is displayed in the top-left corner of each slide. When the timer reaches
-    zero, the next slide will automatically appear. If a quiz question is not answered
-    before time expires, it will be marked as incorrect.
-
-
-    In addition to the
-    instructional content, you will have access to an interactive 3D model of the
-    brain that can be explored throughout the experience. Use the VR controllers
-    to interact with both the educational content and the 3D model to support your
-    learning.
-
-'
+  curRegion: 0
+  instructions: "FULL VR EXPERIENCE (Headset On)\n\nYou are about to complete a fully
+    immersive virtual reality learning activity.\n\nActivity Structure:\n\u2022 A
+    series of infographic slides presented in a random order.\n\u2022 A short multiple-choice
+    quiz designed to assess your understanding of the material.\n\nTiming:\n\u2022
+    A timer is displayed in the top-left corner of each slide.\n\u2022 When the timer
+    reaches zero, the next slide will automatically appear.\n\u2022 If a quiz question
+    is not answered before time expires, it will be marked as incorrect.\n\nAdditional
+    Features:\n\u2022 Throughout the activity, you will have access to an interactive
+    3D model of the brain.\n\u2022 The model can be explored at any time to support
+    your learning.\n\nControls:\n\u2022 Use the VR controllers to interact with both
+    the educational content and the 3D brain model.\n\u2022 Review the content carefully
+    and answer each question to the best of your ability."

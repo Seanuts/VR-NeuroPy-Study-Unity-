@@ -14,12 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Slide
   timeLimit: 60
   slideType: 0
-  question: Where is the Cerebellum positioned?
-  answerChoices:
-  - At the posterior base of the brain, below the occipital lobe
-  - Deep inside the temporal lobe
-  - Directly behind the eyes
-  - In front of the central sulcus
-  correctAnswerIndex: 0
+  question: 'Where is the parietal lobe located?  '
+  questionGraphic: {fileID: 21300000, guid: 7b0423f706f7c0b40b4935206b9832ae, type: 3}
+  answerChoiceRegions: 00000000050000000600000007000000
+  correctAnsIndex: 1
   infographic: {fileID: 0}
-  instruction: 
+  curRegion: 0
+  instructions: 
