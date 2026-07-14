@@ -25,19 +25,24 @@ public class GameManager : MonoBehaviour
     [SerializeField] SlideshowController vrSlideshow;
     [SerializeField] SlideshowController desktopSlideshow;
     
-    // instruction slides
+    // Instruction slides
     [SerializeField] Slide vrIntroSlide;
     [SerializeField] Slide desktopIntroSlide;
     [SerializeField] Slide hybridIntroSlide;
 
-    // game sequence
+    // Game sequence
     [SerializeField] List<SlideBlock> blockOrder;
     List<GameModes> modeOrder = new List<GameModes> { GameModes.VR, GameModes.Desktop, GameModes.Hybrid };
     int curState;
 
+    // Data collection
+    ModeData vrData;
+    ModeData desktopData;
+    ModeData hybridData;
+
     void Awake()
     {
-        // load as singleton
+        // Load as singleton
         if( GameManager.Instance != null && GameManager.Instance != this)
         {
             Destroy(this.gameObject);
@@ -46,14 +51,14 @@ public class GameManager : MonoBehaviour
         GameManager.Instance = this;
         DontDestroyOnLoad(this.gameObject);
 
-        // randomize order
+        // Randomize mode & block order
         blockOrder = blockOrder.OrderBy(x => UnityEngine.Random.value).ToList();
         modeOrder = modeOrder.OrderBy(x => UnityEngine.Random.value).ToList();
     }
 
     void Start()
     {
-        // start the first mode
+        // Start the first mode
         curState = 0;
         InitializeMode(curState);
     }
@@ -86,22 +91,42 @@ public class GameManager : MonoBehaviour
                 break;
         }
     }
+   
+    // Activated by SlideshowController to alert GameManager of updates
+    public void SlideChanged(Slide newSlide)
+    {
+        DataManager.Instance.LogEvent("Displaying " + newSlide.name + " slide");
+    }
 
     public void ModeFinished(ModeData data)
     {
-        // TODO: integrate data collection
         data.mode = modeOrder[curState];
-        Debug.Log($"{data.mode.ToString()} RESULT:\n\tcorrect: {data.questionsCorrect}\n\tincorrect: {data.questionsWrong}"); // DEBUG
 
-        // advance to the next mode
+        // Collect the data from the completed mode
+        // TODO: make this cleaner
+        switch( data.mode)
+        {
+            case GameModes.VR:
+                vrData = data;
+                break;
+            case GameModes.Hybrid:
+                hybridData = data;
+                break;
+            case GameModes.Desktop:
+                desktopData = data;
+                break;
+        }
+
+        // Advance to the next mode
         curState++;
         if(curState >= 3)
         {
-            // TODO: do something when game finishes
-            Debug.Log("GAME FINISHED!"); // DEBUG
+            DataManager.Instance.LogEvent("Game Finished");
+            DataManager.Instance.LogResultData(vrData, hybridData, desktopData);
         } 
         else
         {
+            DataManager.Instance.LogEvent("Started " + modeOrder[curState].ToString() + " Mode");
             InitializeMode(curState);
         }
     }

@@ -9,39 +9,32 @@ public class SlideshowController : MonoBehaviour
 {
     [SerializeField] SlideTimer slideTimer;
     
-    // for question
+    // For question
     [SerializeField] GameObject questionLayout;
     [SerializeField] TextMeshProUGUI questionText;
     [SerializeField] Image questionGraphic;
     
-    // for infographic
+    // For infographic
     [SerializeField] GameObject infographicLayout;
     [SerializeField] Image infographic;
     
-    // for instruction
+    // For instruction
     [SerializeField] GameObject instructionLayout;
     [SerializeField] TextMeshProUGUI instructionText;
 
-    // slideshow management
+    // Slideshow management
     SlideBlock curBlock;
     List<Slide> slideOrder;
     int curSlideIndex;
 
-    // data collection
+    // TODO: make this a JSON or something
+    // Data collection
     int correctAnswers;
     int wrongAnswers;
 
-    //void Start()
-    //{
-    //}
-
-    //void Update()
-    //{
-    //}
-
     public void StartSlideshow(Slide startSlide, SlideBlock block)
     {
-        // get block and randomize order of slides
+        // Get block and randomize order of slides
         curBlock = block;
         slideOrder = new List<Slide> { startSlide };
         slideOrder.AddRange(
@@ -53,7 +46,7 @@ public class SlideshowController : MonoBehaviour
                 .OrderBy(x => UnityEngine.Random.value)
         );
 
-        // initialize internal vars
+        // Initialize internal vars
         curSlideIndex = 0;
         correctAnswers = 0;
         wrongAnswers = 0;
@@ -64,7 +57,7 @@ public class SlideshowController : MonoBehaviour
     {
         Slide slide = slideOrder[curSlideIndex];
         
-        // display content
+        // Display content
         switch (slide.slideType)
         {
             case SlideType.Instruction:
@@ -89,14 +82,14 @@ public class SlideshowController : MonoBehaviour
                 infographic.sprite = slide.infographic;
                 break;
         }
-        // update the highlighting based on current slide information
+        // Update the highlighting based on current slide information
         GameManager.Instance.InteractiveBrain.UpdateHighlighting(slide);
 
-        // start the timer
+        // Start the timer
         slideTimer.StartTimer(slide.timeLimit);
     }
 
-    // called by buttons/timer to advance slideshow
+    // Called by buttons/timer to advance slideshow
     public void NextSlide()
     {
         curSlideIndex++;
@@ -106,10 +99,13 @@ public class SlideshowController : MonoBehaviour
             ModeData data = new ModeData();
             data.questionsCorrect = correctAnswers;
             data.questionsWrong = wrongAnswers;
+            // Alert GameManager of mode change
             GameManager.Instance.ModeFinished(data);
         }
         else
         {
+            // Alert GameManager of slide change and display slide
+            GameManager.Instance.SlideChanged(slideOrder[curSlideIndex]);
             DisplayCurrentSlide();
         }
     }
@@ -133,7 +129,8 @@ public class SlideshowController : MonoBehaviour
     {
         if (slideOrder[curSlideIndex].slideType == SlideType.Question)
         {
-            // if timer expired on question slide then incorrect
+            // If timer expired on question slide then incorrect
+            wrongAnswers++;
         }
         NextSlide();
     }
