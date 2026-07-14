@@ -37,11 +37,9 @@ public class BrainController : MonoBehaviour
     [SerializeField] Material transparent;
 
 
-    void Awake()
-    {
-        // convert BRM to dict for fast lookups
+    public void createBrainMapping(){ 
         brainRegions = new Dictionary<BrainRegion, GameObject>();
-        foreach(var mapping in brainRegionMapping)
+        foreach (var mapping in brainRegionMapping)
         {
             // check not duplicate (JIC)
             if (!brainRegions.ContainsKey(mapping.region))
@@ -53,7 +51,12 @@ public class BrainController : MonoBehaviour
                 Debug.Log("Warning: duplicate key found during Brain Region Mapping!");
             }
         }
+    }
 
+    void Awake()
+    {
+        // convert BRM to dict for fast lookups
+        createBrainMapping();
         // ensure transparent is default material
         SetMaterialRecursive(brainModel, transparent);
     }
@@ -86,7 +89,7 @@ public class BrainController : MonoBehaviour
 
     }
 
-    void SetBrainRegionMaterial(BrainRegion reg,  Material material)
+    public void SetBrainRegionMaterial(BrainRegion reg,  Material material)
     {
         if (brainRegions.TryGetValue(reg, out GameObject obj))
         {
@@ -98,7 +101,7 @@ public class BrainController : MonoBehaviour
         }
     }
 
-    void SetMaterialRecursive(GameObject obj, Material material)
+    public void SetMaterialRecursive(GameObject obj, Material material)
     {
         if (obj == null)
             return;
