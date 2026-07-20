@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using UnityEngine;
@@ -33,22 +34,22 @@ public class DataManager : MonoBehaviour
 
         // Create unique directory for current playthrough
         string studyDataPath = Path.Combine(Path.GetDirectoryName(Application.dataPath), "data");
-        folderPath = Path.Combine(studyDataPath, DateTime.Now.ToString("yyyy-MM-dd-HH-MM-ss"));
-        if (! Directory.Exists(folderPath) )
+        folderPath = Path.Combine(studyDataPath, DateTime.Now.ToString("yyyy-MM-dd-HH_mm_ss"));
+        if ( !Directory.Exists(folderPath) )
         {
             Directory.CreateDirectory(folderPath);
         }
 
         // Init eyetracking and event logging files
         leftEyeStream = new StreamWriter(Path.Combine(folderPath, "left_eye_data.csv"), false);
-        leftEyeStream.WriteLine("Timestamp,Position,Rotation");
+        leftEyeStream.WriteLine("timestamp,Position,rotation");
         
         rightEyeStream = new StreamWriter(Path.Combine(folderPath, "right_eye_data.csv"), false);
-        rightEyeStream.WriteLine("Timestamp,Position,Rotation");
+        rightEyeStream.WriteLine("timestamp,position,rotation");
         
         eventLogStream = new StreamWriter(Path.Combine(folderPath, "event_log.csv"), false);
-        eventLogStream.WriteLine("Timestamp,Event");
-        LogEvent("Finished Init");
+        eventLogStream.WriteLine("timestamp,event");
+        LogEvent("init");
 
     }
 
@@ -70,12 +71,10 @@ public class DataManager : MonoBehaviour
         rightEyeStream.WriteLine(clock.ElapsedMilliseconds + "," + data);
     }
 
-    public void LogResultData(ModeData vr, ModeData hybrid, ModeData desktop)
+    public void LogResultData(GameData data)
     {
-        string content = "VR:\n" + vr.ToString() + "\n\n";
-        content += "Hybrid:\n" + hybrid.ToString() + "\n\n";
-        content += "Desktop:\n" + desktop.ToString() + "\n\n";
-        File.WriteAllText(Path.Combine(folderPath, "results.txt"), content);
+        string json = JsonUtility.ToJson(data, true);
+        File.WriteAllText(Path.Combine(folderPath, "results.json"), json);
     }
 
     // For cleanup

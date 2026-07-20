@@ -24,7 +24,7 @@ public class SlideTimer : MonoBehaviour
             currentTime -= Time.deltaTime;
         }
 
-        // end timer when clock runs out + low time warning
+        // End timer when clock runs out + low time warning
         if (active && currentTime <= 0)
         {
             currentTime = 0;
@@ -38,7 +38,7 @@ public class SlideTimer : MonoBehaviour
             timerText.color = Color.yellow;
         }
 
-        // update gfx
+        // Update gfx
         float secondsLeft = MathF.Round(currentTime);
         timerText.text = $"{secondsLeft}";
     }

@@ -1,12 +1,17 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
-public struct ModeData
+[Serializable]
+public class GameData
 {
-    public GameModes mode;
-    public int questionsCorrect;
-    public int questionsWrong;
+    public BlockData vr;
+    public BlockData hybrid;
+    public BlockData desktop;
+    public int totalCorrect = 0;
+    public int totalIncorrect = 0;
+    public int totalTimeout = 0;
 }
 
 public enum GameModes
@@ -20,7 +25,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
-    [SerializeField] public BrainController InteractiveBrain;
+    [SerializeField] BrainHighlighter brain;
     
     [SerializeField] SlideshowController vrSlideshow;
     [SerializeField] SlideshowController desktopSlideshow;
@@ -32,13 +37,11 @@ public class GameManager : MonoBehaviour
 
     // Game sequence
     [SerializeField] List<SlideBlock> blockOrder;
-    List<GameModes> modeOrder = new List<GameModes> { GameModes.VR, GameModes.Desktop, GameModes.Hybrid };
-    int curState;
+    List<GameModes> modeOrder = new List<GameModes> { GameModes.VR, GameModes.Desktop, GameModes.Hybrid};
+    int curModeIndex;
 
     // Data collection
-    ModeData vrData;
-    ModeData desktopData;
-    ModeData hybridData;
+    GameData gameResults;
 
     void Awake()
     {
@@ -54,13 +57,16 @@ public class GameManager : MonoBehaviour
         // Randomize mode & block order
         blockOrder = blockOrder.OrderBy(x => UnityEngine.Random.value).ToList();
         modeOrder = modeOrder.OrderBy(x => UnityEngine.Random.value).ToList();
+
+        // Initialize data collection vars
+        gameResults = new GameData();
     }
 
     void Start()
     {
         // Start the first mode
-        curState = 0;
-        InitializeMode(curState);
+        curModeIndex = 0;
+        InitializeMode(curModeIndex);
     }
 
     public void InitializeMode(int state)
@@ -72,63 +78,68 @@ public class GameManager : MonoBehaviour
             case GameModes.Desktop:
                 desktopSlideshow.gameObject.SetActive(true);
                 vrSlideshow.gameObject.SetActive(false);
-                InteractiveBrain.gameObject.SetActive(false);
+                brain.gameObject.SetActive(false);
                 desktopSlideshow.StartSlideshow(desktopIntroSlide, curBlock);
                 break;
-            
             case GameModes.Hybrid:
                 desktopSlideshow.gameObject.SetActive(false);
                 vrSlideshow.gameObject.SetActive(true);
-                InteractiveBrain.gameObject.SetActive(false);
+                brain.gameObject.SetActive(false);
                 vrSlideshow.StartSlideshow(hybridIntroSlide, curBlock);
                 break;
-            
             case GameModes.VR:
                 desktopSlideshow.gameObject.SetActive(false);
                 vrSlideshow.gameObject.SetActive(true);
-                InteractiveBrain.gameObject.SetActive(true);
+                brain.gameObject.SetActive(true);
                 vrSlideshow.StartSlideshow(vrIntroSlide, curBlock);
                 break;
         }
+        DataManager.Instance.LogEvent(curMode.ToString());
     }
    
-    // Activated by SlideshowController to alert GameManager of updates
+    // Triggered by SlideshowController to alert GameManager of updates
     public void SlideChanged(Slide newSlide)
     {
-        DataManager.Instance.LogEvent("Displaying " + newSlide.name + " slide");
+        DataManager.Instance.LogEvent(newSlide.name);
+        brain.LoadSlide(newSlide);
     }
 
-    public void ModeFinished(ModeData data)
+    // Triggered by SlideshowController to alert GameManager of mode finishing
+    public void ModeFinished(BlockData results)
     {
-        data.mode = modeOrder[curState];
+        // Record data
+        gameResults.totalCorrect += results.totalCorrect;
+        gameResults.totalIncorrect += results.totalIncorrect;
+        gameResults.totalTimeout += results.totalTimeout;
 
-        // Collect the data from the completed mode
-        // TODO: make this cleaner
-        switch( data.mode)
+        // Convert nested dict to a string
+        GameModes curMode = modeOrder[curModeIndex];
+        switch (curMode)
         {
             case GameModes.VR:
-                vrData = data;
-                break;
+                gameResults.vr = results; break;
             case GameModes.Hybrid:
-                hybridData = data;
-                break;
+                gameResults.hybrid = results; break;
             case GameModes.Desktop:
-                desktopData = data;
-                break;
+                gameResults.desktop = results; break;
         }
 
         // Advance to the next mode
-        curState++;
-        if(curState >= 3)
+        curModeIndex++;
+        if(curModeIndex >= 3)
         {
-            DataManager.Instance.LogEvent("Game Finished");
-            DataManager.Instance.LogResultData(vrData, hybridData, desktopData);
+            GameFinished();
         } 
         else
         {
-            DataManager.Instance.LogEvent("Started " + modeOrder[curState].ToString() + " Mode");
-            InitializeMode(curState);
+            InitializeMode(curModeIndex);
         }
     }
 
+    void GameFinished()
+    {
+        // Finalize data
+        DataManager.Instance.LogEvent("finished");
+        DataManager.Instance.LogResultData(gameResults);
+    }
 }

@@ -14,19 +14,20 @@ public enum SlideType
 [CreateAssetMenu(fileName = "Slide", menuName = "Scriptable Objects/Slide")]
 public class Slide : ScriptableObject
 {
-    public float timeLimit; // in seconds
+    public float timeLimit; // In seconds
     public SlideType slideType;
 
-    // question slide specific
+    // Question slide specific
     public string question;
     public Sprite questionGraphic;
     public List<BrainRegion> answerChoiceRegions;
-    public int correctAnsIndex; // red, yellow, green, blue (respectively)
+    public int correctAnsIndex; // Red, yellow, green, blue (respectively)
 
-    // information slide specifc
+    // Information slide specifc
     public Sprite infographic;
     public BrainRegion curRegion;
+    public BrainPreset preset;
 
-    // instruction slide
+    // Instruction slide
     [TextArea(5,20)] public string instructions;
 }

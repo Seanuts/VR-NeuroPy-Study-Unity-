@@ -5,6 +5,7 @@ using UnityEngine;
 public class Synchronizer : MonoBehaviour
 {
     public static Synchronizer Instance;
+    [SerializeField] bool debugMode = false;
 
     const string ADDR = "127.0.0.1";
     const int PORT = 12345;
@@ -24,23 +25,32 @@ public class Synchronizer : MonoBehaviour
         DontDestroyOnLoad(this.gameObject);
 
         // Connect to sync server
-        client = new TcpClient(ADDR, PORT);
-        stream = client.GetStream();
+        if (!debugMode)
+        {
+            client = new TcpClient(ADDR, PORT);
+            stream = client.GetStream();
+        }
     }
 
-    void Start()
-    {
-        DataManager.Instance.LogEvent("Connected Sync Server");
-    }
+    //void Start()
+    //{
+    //    DataManager.Instance.LogEvent("Connected Sync Server");
+    //}
 
     private void OnApplicationQuit()
     {
-        client.Close();
+        if (!debugMode)
+        {
+            client.Close();
+        }
     }
 
     public async void SendTrigger()
     {
-        byte[] data = Encoding.UTF8.GetBytes("TRIG");
-        await stream.WriteAsync(data, 0, 4);
+        if (!debugMode) 
+        { 
+            byte[] data = Encoding.UTF8.GetBytes("TRIG");
+            await stream.WriteAsync(data, 0, 4);
+        }
     }
 }

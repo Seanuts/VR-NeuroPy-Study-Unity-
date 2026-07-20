@@ -1,4 +1,4 @@
-const int LED_PIN = 13; // built-in led
+const int LED_PIN = 2; // external led
 const int TRIG_PIN = 3; // d3
 
 const int PULSE =  100; // length of trig pulse in ms
@@ -15,15 +15,6 @@ void setup() {
   pinMode(TRIG_PIN, INPUT);
 }
 
-void loop() {
-  if( Serial.available() ){
-    String cmd = Serial.readStringUntil('\n');
-    if (cmd == "TRIG"){
-      fireTrigger();
-    }
-}
-
-
 // sends a trigger pulse to TRIG_PIN for PULSE seconds
 void fireTrigger(){
   digitalWrite(LED_PIN, HIGH); // for debug/sync
@@ -31,4 +22,13 @@ void fireTrigger(){
   delay(PULSE);
   digitalWrite(LED_PIN, LOW);
   pinMode(TRIG_PIN, INPUT);
+}
+
+void loop() {
+  if( Serial.available() ){
+    String cmd = Serial.readStringUntil('\n');
+    if (cmd == "TRIG"){
+      fireTrigger();
+    }
+  }
 }

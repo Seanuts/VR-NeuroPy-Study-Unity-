@@ -2,8 +2,24 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System.Linq;
+using System;
 
+
+[Serializable]
+public class SlideData
+{
+    public string slideName;
+    public string result;
+}
+
+[Serializable]
+public class BlockData
+{
+    public SlideData[] slides = new SlideData[3];
+    public int totalCorrect = 0;
+    public int totalIncorrect = 0;
+    public int totalTimeout = 0;
+}
 
 public class SlideshowController : MonoBehaviour
 {
@@ -27,29 +43,24 @@ public class SlideshowController : MonoBehaviour
     List<Slide> slideOrder;
     int curSlideIndex;
 
-    // TODO: make this a JSON or something
-    // Data collection
-    int correctAnswers;
-    int wrongAnswers;
+    // Results
+    BlockData results;
 
     public void StartSlideshow(Slide startSlide, SlideBlock block)
     {
-        // Get block and randomize order of slides
+        // Merge slides
         curBlock = block;
         slideOrder = new List<Slide> { startSlide };
         slideOrder.AddRange(
             curBlock.infographicSlides
-                .OrderBy(x => UnityEngine.Random.value)
         );
         slideOrder.AddRange(
             curBlock.questionSlides
-                .OrderBy(x => UnityEngine.Random.value)
         );
-
-        // Initialize internal vars
+        // Start at slide 0
         curSlideIndex = 0;
-        correctAnswers = 0;
-        wrongAnswers = 0;
+        // Initialize result data
+        results = new BlockData();
         DisplayCurrentSlide();
     }
 
@@ -82,8 +93,6 @@ public class SlideshowController : MonoBehaviour
                 infographic.sprite = slide.infographic;
                 break;
         }
-        // Update the highlighting based on current slide information
-        GameManager.Instance.InteractiveBrain.UpdateHighlighting(slide);
 
         // Start the timer
         slideTimer.StartTimer(slide.timeLimit);
@@ -93,18 +102,15 @@ public class SlideshowController : MonoBehaviour
     public void NextSlide()
     {
         curSlideIndex++;
-        // check if slideshow done
+        // Check if slideshow done
         if(curSlideIndex >= slideOrder.Count)
         {
-            ModeData data = new ModeData();
-            data.questionsCorrect = correctAnswers;
-            data.questionsWrong = wrongAnswers;
-            // Alert GameManager of mode change
-            GameManager.Instance.ModeFinished(data);
+            // Alert GameManager of slideshow completion
+            GameManager.Instance.ModeFinished(results);
         }
         else
         {
-            // Alert GameManager of slide change and display slide
+            // Alert GameManager of the newly changed slide
             GameManager.Instance.SlideChanged(slideOrder[curSlideIndex]);
             DisplayCurrentSlide();
         }
@@ -112,15 +118,21 @@ public class SlideshowController : MonoBehaviour
 
     public void QuestionAnswered(int index)
     {
-        // 0 - red; 1 - yellow; 2 - green; 3 - blue
+        // 0 - Red; 1 - Yellow; 2 - Green; 3 - Blue
         Slide curSlide = slideOrder[curSlideIndex];
         if (index == curSlide.correctAnsIndex)
         {
-            correctAnswers++;
+            results.slides[curSlideIndex - 4] = new SlideData();
+            results.slides[curSlideIndex - 4].slideName = curSlide.name;
+            results.slides[curSlideIndex - 4].result = "correct";
+            results.totalCorrect++;
         }
         else
         {
-            wrongAnswers++;
+            results.slides[curSlideIndex - 4] = new SlideData();
+            results.slides[curSlideIndex - 4].slideName = curSlide.name;
+            results.slides[curSlideIndex - 4].result = "incorrect";
+            results.totalIncorrect++;
         }
         NextSlide();
     }
@@ -130,7 +142,10 @@ public class SlideshowController : MonoBehaviour
         if (slideOrder[curSlideIndex].slideType == SlideType.Question)
         {
             // If timer expired on question slide then incorrect
-            wrongAnswers++;
+            results.slides[curSlideIndex - 4] = new SlideData();
+            results.slides[curSlideIndex - 4].slideName = slideOrder[curSlideIndex].name;
+            results.slides[curSlideIndex - 4].result = "timeout";
+            results.totalCorrect++;
         }
         NextSlide();
     }

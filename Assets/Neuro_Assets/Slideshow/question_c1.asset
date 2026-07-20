@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Slide
   timeLimit: 60
   slideType: 0
-  question: 'A patient has ataxia (movement coordination disorder). Which highlighted
-    brain structure is likely damaged?  '
+  question: "Where is Broca\u2019s Area located? "
   questionGraphic: {fileID: 21300000, guid: daaf2b1449d39bf459f7c6b55fb0aa67, type: 3}
   answerChoiceRegions: 0a0000000c0000000d0000000e000000
   correctAnsIndex: 0
