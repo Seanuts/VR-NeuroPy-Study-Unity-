@@ -1,90 +1,72 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
-public class OrbitGrab : MonoBehaviour
+public class BrainOrbit : MonoBehaviour
 {
     [SerializeField] float rotationSpeed = 200f;
-    private XRGrabInteractable grab;
-    private Transform currentHand;
-    private Transform xrOriginTransform; // Tracks the player's playspace
-    private Vector3 previousLocalHandPosition; // Tracks local position instead of world
+    [SerializeField] private InputActionReference leftJoystickAction;
+    [SerializeField] private InputActionReference resetButtonAction;
+
+    Quaternion initialRotation;
 
     private void Awake()
     {
-        grab = GetComponent<XRGrabInteractable>();
-        grab.selectEntered.AddListener(OnGrab);
-        grab.selectExited.AddListener(OnRelease);
+        initialRotation = transform.rotation;
+    }
+    private void OnEnable()
+    {
+        // Enable actions and bind the reset button event
+        if (leftJoystickAction != null)
+            leftJoystickAction.action.Enable();
 
-        // Find the XR Origin (or Camera Rig) in your scene automatically
-        var origin = Object.FindFirstObjectByType<Unity.XR.CoreUtils.XROrigin>();
-        if (origin != null)
+        if (resetButtonAction != null)
         {
-            xrOriginTransform = origin.transform;
-        }
-        else
-        {
-            // Fallback if XR Origin component isn't found
-            Debug.LogWarning("XROrigin not found! Falling back to Main Camera's parent.");
-            xrOriginTransform = Camera.main.transform.parent;
+            resetButtonAction.action.Enable();
+            resetButtonAction.action.performed += OnResetPressed;
         }
     }
 
-    private void OnGrab(SelectEnterEventArgs args)
+    private void OnDisable()
     {
-        currentHand = args.interactorObject.transform;
+        // Clean up events and disable actions to prevent memory leaks
+        if (leftJoystickAction != null)
+            leftJoystickAction.action.Disable();
 
-        // Store the hand's initial position relative to the player's space
-        if (xrOriginTransform != null)
-            previousLocalHandPosition = xrOriginTransform.InverseTransformPoint(currentHand.position);
-        else
-            previousLocalHandPosition = currentHand.position;
-    }
-
-    private void OnRelease(SelectExitEventArgs args)
-    {
-        currentHand = null;
+        if (resetButtonAction != null)
+        {
+            resetButtonAction.action.performed -= OnResetPressed;
+            resetButtonAction.action.Disable();
+        }
     }
 
     private void Update()
     {
-        if (currentHand == null)
-            return;
+        if (leftJoystickAction == null) return;
 
-        Vector3 worldDelta;
+        // Read the 2D vector from the left joystick
+        Vector2 joystickInput = leftJoystickAction.action.ReadValue<Vector2>();
 
-        if (xrOriginTransform != null)
+        if (joystickInput != Vector2.zero)
         {
-            // 1. Calculate delta using the hand's position relative to the moving player
-            Vector3 currentLocalHandPosition = xrOriginTransform.InverseTransformPoint(currentHand.position);
-            Vector3 localHandDelta = currentLocalHandPosition - previousLocalHandPosition;
+            Transform camTransform = Camera.main.transform;
 
-            // 2. Convert that safe delta back into a world direction for the rotations below
-            worldDelta = xrOriginTransform.TransformDirection(localHandDelta);
-            previousLocalHandPosition = currentLocalHandPosition;
+            // X-axis joystick input controls horizontal rotation (around global Up)
+            transform.Rotate(Vector3.up, -joystickInput.x * rotationSpeed * Time.deltaTime, Space.World);
+
+            // Y-axis joystick input controls vertical rotation (around camera's Right)
+            transform.Rotate(camTransform.right, joystickInput.y * rotationSpeed * Time.deltaTime, Space.World);
         }
-        else
-        {
-            // Fallback behavior if no player rig is found
-            worldDelta = currentHand.position - previousLocalHandPosition;
-            previousLocalHandPosition = currentHand.position;
-        }
+    }
 
-        // 3. Convert the safe movement into Camera space to keep your multi-axis fix working
-        Transform camTransform = Camera.main.transform;
-        Vector3 cameraLocalDelta = camTransform.InverseTransformDirection(worldDelta);
+    private void OnResetPressed(InputAction.CallbackContext context)
+    {
+        ResetRotation();
+    }
 
-        // 4. Apply rotations safely
-        transform.Rotate(
-            Vector3.up,
-            -cameraLocalDelta.x * rotationSpeed,
-            Space.World
-        );
-
-        transform.Rotate(
-            camTransform.right,
-            cameraLocalDelta.y * rotationSpeed,
-            Space.World
-        );
+    public void ResetRotation()
+    {
+        transform.rotation = initialRotation;
     }
 }

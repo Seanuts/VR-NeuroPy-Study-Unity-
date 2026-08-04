@@ -18,6 +18,16 @@ public class BrainEditor: EditorWindow
     // To save a specfic region configuration
     private Slide slide;
 
+    // For question creation
+    private Material qmat1;
+    private Material qmat2;
+    private Material qmat3;
+    private Material qmat4;
+    private BrainRegion qtar1;
+    private BrainRegion qtar2;
+    private BrainRegion qtar3;
+    private BrainRegion qtar4;
+
 
     [MenuItem("Tools/Brain Editor")]
     public static void ShowWindow()
@@ -56,13 +66,33 @@ public class BrainEditor: EditorWindow
         EditorGUILayout.Space(10);
         EditorGUILayout.Space(5);
 
-        // Function to load current brain as preset
-        GUILayout.Label("Action: Save Region Preset", EditorStyles.boldLabel);
-        slide = (Slide)EditorGUILayout.ObjectField("Slide", slide, typeof(Slide), false);
-        if (GUILayout.Button("Save", GUILayout.Height(25)))
+        // Function to create question configuration
+        GUILayout.Label("Action: Question Image Creator Tool", EditorStyles.boldLabel);
+        qmat1 = (Material)EditorGUILayout.ObjectField("Material", qmat1, typeof(Material), false);
+        qmat2 = (Material)EditorGUILayout.ObjectField("Material", qmat2, typeof(Material), false);
+        qmat3 = (Material)EditorGUILayout.ObjectField("Material", qmat3, typeof(Material), false);
+        qmat4 = (Material)EditorGUILayout.ObjectField("Material", qmat4, typeof(Material), false);
+
+        qtar1 = (BrainRegion)EditorGUILayout.EnumPopup("Region", qtar1);
+        qtar2 = (BrainRegion)EditorGUILayout.EnumPopup("Region", qtar2);
+        qtar3 = (BrainRegion)EditorGUILayout.EnumPopup("Region", qtar3);
+        qtar4 = (BrainRegion)EditorGUILayout.EnumPopup("Region", qtar4);
+
+        if (GUILayout.Button("Apply", GUILayout.Height(25)))
         {
-            SaveConfiguration();
+            QuestionCreateHelper();
         }
+        EditorGUILayout.Space(10);
+        EditorGUILayout.Space(5);
+
+        // NOTE: Not using custom presets
+        // Function to load current brain as preset
+        //GUILayout.Label("Action: Save Region Preset", EditorStyles.boldLabel);
+        //slide = (Slide)EditorGUILayout.ObjectField("Slide", slide, typeof(Slide), false);
+        //if (GUILayout.Button("Save", GUILayout.Height(25)))
+        //{
+        //    SaveConfiguration();
+        //}
 
     }
 
@@ -85,20 +115,31 @@ public class BrainEditor: EditorWindow
         brainHighlighter.SetBrainRegionMaterial(target, mat2);
     }
 
-    private void SaveConfiguration()
+    // NOTE: It was late at night so I jsut coded this fast, def not polished
+    private void QuestionCreateHelper()
     {
-        if (brainHighlighter == null || slide == null)
-        {
-            Debug.LogWarning("Invalid/missing arguments!");
-        }
-        if (slide.preset == null)
-        {
-            slide.preset = new BrainPreset();
-        }
         brainHighlighter.CreateBrainMapping();
-        brainHighlighter.SavePreset(slide.preset);
-        // Save changes to disk
-        EditorUtility.SetDirty(slide);
-        AssetDatabase.SaveAssets();
+        brainHighlighter.SetBrainRegionMaterial(qtar1, qmat1);
+        brainHighlighter.SetBrainRegionMaterial(qtar2, qmat2);
+        brainHighlighter.SetBrainRegionMaterial(qtar3, qmat3);
+        brainHighlighter.SetBrainRegionMaterial(qtar4, qmat4);
     }
+
+    // NOTE: Not using custom presets
+    //private void SaveConfiguration()
+    //{
+    //    if (brainHighlighter == null || slide == null)
+    //    {
+    //        Debug.LogWarning("Invalid/missing arguments!");
+    //    }
+    //    if (slide.preset == null)
+    //    {
+    //        slide.preset = new BrainPreset();
+    //    }
+    //    brainHighlighter.CreateBrainMapping();
+    //    brainHighlighter.SavePreset(slide.preset);
+    //    // Save changes to disk
+    //    EditorUtility.SetDirty(slide);
+    //    AssetDatabase.SaveAssets();
+    //}
 }

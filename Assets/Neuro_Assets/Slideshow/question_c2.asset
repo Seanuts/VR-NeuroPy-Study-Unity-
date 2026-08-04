@@ -14,11 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Slide
   timeLimit: 60
   slideType: 0
-  question: 'Which highlighted brain structure is primarily responsible for regulating
-    involuntary life-support functions such as breathing, heart rate, and swallowing?  '
-  questionGraphic: {fileID: 21300000, guid: ec3ae2beba524b9448c41b0930b46a16, type: 3}
-  answerChoiceRegions: 0000000003000000090000000b000000
-  correctAnsIndex: 3
+  question: 'A patient can understand spoken language, remember recent events, and
+    recognize sounds. Which brain lobe is primarily responsible for these functions? '
+  questionGraphic: {fileID: 21300000, guid: 66f838219e5ebc741bff551ab749eccf, type: 3}
+  correctAnsIndex: 0
   infographic: {fileID: 0}
   curRegion: 0
-  instructions: 
+  makeTransparent: 0
+  instructionGraphic: {fileID: 0}

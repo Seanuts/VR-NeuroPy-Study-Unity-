@@ -15,9 +15,9 @@ MonoBehaviour:
   timeLimit: 60
   slideType: 0
   question: 'Where is the parietal lobe located?  '
-  questionGraphic: {fileID: 21300000, guid: 7b0423f706f7c0b40b4935206b9832ae, type: 3}
-  answerChoiceRegions: 00000000050000000600000007000000
+  questionGraphic: {fileID: 21300000, guid: 33c4a278855649b499f0448cf42054b6, type: 3}
   correctAnsIndex: 1
   infographic: {fileID: 0}
   curRegion: 0
-  instructions: 
+  makeTransparent: 0
+  instructionGraphic: {fileID: 0}

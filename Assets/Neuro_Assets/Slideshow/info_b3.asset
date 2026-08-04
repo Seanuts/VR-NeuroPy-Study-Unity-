@@ -12,12 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f59101f9f0c18e74aba7228e60820b17, type: 3}
   m_Name: info_b3
   m_EditorClassIdentifier: Assembly-CSharp::Slide
-  timeLimit: 360
+  timeLimit: 180
   slideType: 1
   question: 
   questionGraphic: {fileID: 0}
   answerChoiceRegions: 
   correctAnsIndex: 0
-  infographic: {fileID: 21300000, guid: f006a33a24abd7e4c877e2041ffea56d, type: 3}
+  infographic: {fileID: 21300000, guid: d3c71fff48de6a54681dace07f8d052c, type: 3}
   curRegion: 9
+  makeTransparent: 0
   instructions: 

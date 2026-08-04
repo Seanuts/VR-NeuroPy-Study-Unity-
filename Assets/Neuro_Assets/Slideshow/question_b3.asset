@@ -14,11 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Slide
   timeLimit: 60
   slideType: 0
-  question: 'A patient has ataxia (movement coordination disorder). Which highlighted
-    brain structure is likely damaged?  '
-  questionGraphic: {fileID: 21300000, guid: 19d5fd1a8fda26c48bee81850f39bc2f, type: 3}
-  answerChoiceRegions: 01000000030000000200000009000000
-  correctAnsIndex: 3
+  question: 'A 68-year-old woman has no muscle weakness but cannot correctly perform
+    learned tasks, such as putting on a shirt or brushing her teeth, despite understanding
+    the instructions. Which brain lobe is most likely damaged? '
+  questionGraphic: {fileID: 21300000, guid: a99306ce31795a74d8da607555c5d526, type: 3}
+  correctAnsIndex: 2
   infographic: {fileID: 0}
   curRegion: 0
-  instructions: 
+  makeTransparent: 0
+  instructionGraphic: {fileID: 0}

@@ -22,7 +22,6 @@ public class Synchronizer : MonoBehaviour
             return;
         }
         Synchronizer.Instance = this;
-        DontDestroyOnLoad(this.gameObject);
 
         // Connect to sync server
         if (!debugMode)
@@ -37,14 +36,6 @@ public class Synchronizer : MonoBehaviour
     //    DataManager.Instance.LogEvent("Connected Sync Server");
     //}
 
-    private void OnApplicationQuit()
-    {
-        if (!debugMode)
-        {
-            client.Close();
-        }
-    }
-
     public async void SendTrigger()
     {
         if (!debugMode) 
@@ -52,5 +43,23 @@ public class Synchronizer : MonoBehaviour
             byte[] data = Encoding.UTF8.GetBytes("TRIG");
             await stream.WriteAsync(data, 0, 4);
         }
+    }
+
+    private void Cleanup()
+    {
+        if (!debugMode)
+        {
+            client.Close();
+        }
+    }
+
+    private void OnDestroy()
+    {
+        Cleanup();
+    }
+
+    void OnApplicationQuit()
+    {
+        Cleanup();
     }
 }

@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Slide
   timeLimit: 60
   slideType: 0
-  question: 'Which structure is the hippocampus?   '
-  questionGraphic: {fileID: 21300000, guid: 37b1b7030e025954690915f15df21151, type: 3}
-  answerChoiceRegions: 02000000030000000400000009000000
+  question: Which structure is the frontal lobe?
+  questionGraphic: {fileID: 21300000, guid: 863a9f909c2a1d2458c8efe92da81a1f, type: 3}
   correctAnsIndex: 0
   infographic: {fileID: 0}
   curRegion: 0
-  instructions: 
+  makeTransparent: 0
+  instructionGraphic: {fileID: 0}

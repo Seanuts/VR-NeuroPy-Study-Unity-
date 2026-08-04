@@ -6,23 +6,14 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Neuro_Scenes/Archive/SampleScene.unity
-    guid: 55daccc09a3b69647bbab145b54a3ab3
+    path: Assets/Neuro_Scenes/Lobby.unity
+    guid: d5f7e9d8b2fb5854abb41a7a7df274df
   - enabled: 1
-    path: Assets/Neuro_Scenes/Archive/IntroCoordinator.unity
-    guid: 3041ee19608eacb4796cad6304420334
+    path: Assets/Neuro_Scenes/MainScene.unity
+    guid: 4e9fef26e6adb88479ad1b9834a32d94
   - enabled: 1
-    path: Assets/Neuro_Scenes/Archive/3D_NonInteractive.unity
-    guid: c7e772ea20cf7574fb24d50f3ed5929a
-  - enabled: 1
-    path: Assets/Neuro_Scenes/Archive/2D_Static.unity
-    guid: 99fd47bbc72ab5c4e8a524bea081e231
-  - enabled: 1
-    path: Assets/Neuro_Scenes/Archive/WaitingRoom.unity
-    guid: 5b076f6a878f82a4aacd8bfffc6b1758
-  - enabled: 1
-    path: Assets/Neuro_Scenes/Archive/3D_Interactive.unity
-    guid: bc0def574309d064c93320da187cce62
+    path: Assets/Neuro_Scenes/ThankYou.unity
+    guid: a0c6bc9c67e81dd44aed938e49f14d17
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: bfa1182bd221b4ca89619141f66f1260, type: 2}
     Unity.XR.WindowsMR.Settings: {fileID: 11400000, guid: dc5a169419fa04987b057f65238cf3ba, type: 2}

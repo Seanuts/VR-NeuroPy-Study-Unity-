@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 
+// NOTE: this class is currently not being used
 [CreateAssetMenu(fileName = "BrainPreset", menuName = "Scriptable Objects/BrainPreset")]
 public class BrainPreset : ScriptableObject
 {

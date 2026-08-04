@@ -2,29 +2,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System;
-
-
-[Serializable]
-public class SlideData
-{
-    public string slideName;
-    public string result;
-}
-
-[Serializable]
-public class BlockData
-{
-    public SlideData[] slides = new SlideData[3];
-    public int totalCorrect = 0;
-    public int totalIncorrect = 0;
-    public int totalTimeout = 0;
-}
+using System.Linq;
 
 public class SlideshowController : MonoBehaviour
 {
     [SerializeField] SlideTimer slideTimer;
-    
+
+    // Default break slide
+    [SerializeField] Slide breakSlide;
+
     // For question
     [SerializeField] GameObject questionLayout;
     [SerializeField] TextMeshProUGUI questionText;
@@ -33,41 +19,52 @@ public class SlideshowController : MonoBehaviour
     // For infographic
     [SerializeField] GameObject infographicLayout;
     [SerializeField] Image infographic;
+    [SerializeField] Image graphicBlocker;
     
     // For instruction
     [SerializeField] GameObject instructionLayout;
-    [SerializeField] TextMeshProUGUI instructionText;
+    [SerializeField] Image instructGraphic;
 
     // Slideshow management
     SlideBlock curBlock;
     List<Slide> slideOrder;
     int curSlideIndex;
 
-    // Results
-    BlockData results;
-
-    public void StartSlideshow(Slide startSlide, SlideBlock block)
+    public void StartSlideshow(int curMode, SlideBlock block)
     {
-        // Merge slides
         curBlock = block;
-        slideOrder = new List<Slide> { startSlide };
+
+        // Merge slides, adding break if needed
+        if(curMode >= 1 && curMode <= 3)
+        {
+            // Only add break for final 2 slide transitions
+            slideOrder = new List<Slide> { breakSlide };
+        }
+        else
+        {
+            slideOrder = new List<Slide> {};
+        }
         slideOrder.AddRange(
             curBlock.infographicSlides
         );
+        // TODO: Randomize the order of the questions
+        List<Slide> randomizedQuestions = curBlock.questionSlides.OrderBy(x => UnityEngine.Random.value).ToList();
         slideOrder.AddRange(
-            curBlock.questionSlides
+            randomizedQuestions
         );
+        
         // Start at slide 0
         curSlideIndex = 0;
-        // Initialize result data
-        results = new BlockData();
         DisplayCurrentSlide();
     }
 
     void DisplayCurrentSlide()
     {
         Slide slide = slideOrder[curSlideIndex];
-        
+
+        // Let GameManager know slide is changing
+        GameManager.Instance.SlideChanged(slide);
+
         // Display content
         switch (slide.slideType)
         {
@@ -75,7 +72,7 @@ public class SlideshowController : MonoBehaviour
                 instructionLayout.SetActive(true);
                 questionLayout.SetActive(false);
                 infographicLayout.SetActive(false);
-                instructionText.text = slide.instructions;
+                instructGraphic.sprite = slide.instructionGraphic;
                 break;
 
             case SlideType.Question:
@@ -91,6 +88,15 @@ public class SlideshowController : MonoBehaviour
                 questionLayout.SetActive(false);
                 instructionLayout.SetActive(false);
                 infographic.sprite = slide.infographic;
+                // Block brain picture if VR mode
+                if (GameManager.Instance.CurrentMode() == GameModes.VR)
+                {
+                    graphicBlocker.gameObject.SetActive(true);
+                }
+                else
+                {
+                    graphicBlocker.gameObject.SetActive(false);
+                }
                 break;
         }
 
@@ -106,12 +112,10 @@ public class SlideshowController : MonoBehaviour
         if(curSlideIndex >= slideOrder.Count)
         {
             // Alert GameManager of slideshow completion
-            GameManager.Instance.ModeFinished(results);
+            GameManager.Instance.ModeFinished();
         }
         else
         {
-            // Alert GameManager of the newly changed slide
-            GameManager.Instance.SlideChanged(slideOrder[curSlideIndex]);
             DisplayCurrentSlide();
         }
     }
@@ -122,30 +126,22 @@ public class SlideshowController : MonoBehaviour
         Slide curSlide = slideOrder[curSlideIndex];
         if (index == curSlide.correctAnsIndex)
         {
-            results.slides[curSlideIndex - 4] = new SlideData();
-            results.slides[curSlideIndex - 4].slideName = curSlide.name;
-            results.slides[curSlideIndex - 4].result = "correct";
-            results.totalCorrect++;
+            DataManager.Instance.LogResultData(curSlide.name, "correct");
         }
         else
         {
-            results.slides[curSlideIndex - 4] = new SlideData();
-            results.slides[curSlideIndex - 4].slideName = curSlide.name;
-            results.slides[curSlideIndex - 4].result = "incorrect";
-            results.totalIncorrect++;
+            DataManager.Instance.LogResultData(curSlide.name, "incorrect");
         }
         NextSlide();
     }
 
     public void TimerExpired()
     {
-        if (slideOrder[curSlideIndex].slideType == SlideType.Question)
+        Slide curSlide = slideOrder[curSlideIndex];
+        if (curSlide.slideType == SlideType.Question)
         {
-            // If timer expired on question slide then incorrect
-            results.slides[curSlideIndex - 4] = new SlideData();
-            results.slides[curSlideIndex - 4].slideName = slideOrder[curSlideIndex].name;
-            results.slides[curSlideIndex - 4].result = "timeout";
-            results.totalCorrect++;
+            // If timer expired on question slide then timeout (incorrect)
+            DataManager.Instance.LogResultData(curSlide.name, "timeout");
         }
         NextSlide();
     }

@@ -31,11 +31,13 @@ public struct BrainRegionMapping
 
 public class BrainHighlighter : MonoBehaviour
 {
+    [SerializeField] BrainOrbit orbiter;
     [SerializeField] GameObject brainModel;
     [SerializeField] List<BrainRegionMapping> brainRegionMapping;
     private Dictionary<BrainRegion, GameObject> brainRegions;
 
     [SerializeField] Material brainMaterial;
+    [SerializeField] Material transparentMaterial;
     [SerializeField] Material highlightMaterial;
 
     // Create lookup table for fast BrainRegion->GameObject mapping
@@ -61,24 +63,43 @@ public class BrainHighlighter : MonoBehaviour
         CreateBrainMapping();
     }
 
+    // Configures interactive brain for the current slide
     public void LoadSlide(Slide slide)
     {
-        BrainPreset preset = slide.preset;
-        // If no preset then assume standard config
-        if (preset == null)
+        switch( slide.slideType )
         {
-            SetMaterialRecursive(brainModel, brainMaterial);
-            SetBrainRegionMaterial(slide.curRegion, highlightMaterial);
-            return;
+            case SlideType.Question:
+                this.gameObject.SetActive(false);
+                break;
+
+            case SlideType.Infographic:
+                // Reset orientation, make brain visible, highlight target region
+                orbiter.ResetRotation();
+                this.gameObject.SetActive(true);
+                if (slide.makeTransparent)
+                {
+                    SetMaterialRecursive(brainModel, transparentMaterial);
+                }
+                else
+                {
+                    SetMaterialRecursive(brainModel, brainMaterial);
+                }
+                SetBrainRegionMaterial(slide.curRegion, highlightMaterial);
+                break;
+
+            case SlideType.Instruction:
+                this.gameObject.SetActive(false);
+                break;
         }
         
+        // NOTE: Not using custom presets
         // If there is a custom preset
-        foreach (BrainRegion reg in Enum.GetValues(typeof(BrainRegion)))
-        {
-            Material curMat = preset.regionMaterials[(int)reg];
-            if (curMat == null) curMat = brainMaterial;
-            SetBrainRegionMaterial(reg, curMat);
-        }
+        //foreach (BrainRegion reg in Enum.GetValues(typeof(BrainRegion)))
+        //{
+        //    Material curMat = preset.regionMaterials[(int)reg];
+        //    if (curMat == null) curMat = brainMaterial;
+        //    SetBrainRegionMaterial(reg, curMat);
+        //}
     }
 
     public void SavePreset(BrainPreset preset)

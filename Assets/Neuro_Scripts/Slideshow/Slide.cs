@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Pool;
 using UnityEngine.UI;
 
 
@@ -20,14 +21,13 @@ public class Slide : ScriptableObject
     // Question slide specific
     public string question;
     public Sprite questionGraphic;
-    public List<BrainRegion> answerChoiceRegions;
     public int correctAnsIndex; // Red, yellow, green, blue (respectively)
 
     // Information slide specifc
     public Sprite infographic;
     public BrainRegion curRegion;
-    public BrainPreset preset;
+    public bool makeTransparent = false;
 
     // Instruction slide
-    [TextArea(5,20)] public string instructions;
+    public Sprite instructionGraphic;
 }

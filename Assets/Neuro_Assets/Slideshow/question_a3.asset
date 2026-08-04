@@ -14,12 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Slide
   timeLimit: 60
   slideType: 0
-  question: 'A patient is unable to move the right side of their body following a
-    stroke. Based on this symptom, which highlighted brain structure is most likely
-    damaged?   '
-  questionGraphic: {fileID: 21300000, guid: cbb012fd52eecf044b5365b38efa143c, type: 3}
-  answerChoiceRegions: 01000000030000000200000009000000
-  correctAnsIndex: 0
+  question: 'After a traumatic brain injury, a patient develops poor impulse control,
+    personality changes, and impaired planning. Which brain lobe is most likely affected?  '
+  questionGraphic: {fileID: 21300000, guid: dd55fcd6d9591584ebbb45231a8d1c59, type: 3}
+  correctAnsIndex: 1
   infographic: {fileID: 0}
   curRegion: 0
-  instructions: 
+  makeTransparent: 0
+  instructionGraphic: {fileID: 0}
