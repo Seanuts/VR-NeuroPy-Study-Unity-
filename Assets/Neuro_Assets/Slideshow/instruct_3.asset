@@ -16,9 +16,8 @@ MonoBehaviour:
   slideType: 2
   question: 
   questionGraphic: {fileID: 0}
-  answerChoiceRegions: 
   correctAnsIndex: 0
   infographic: {fileID: 0}
   curRegion: 0
   makeTransparent: 0
-  instructionGraphic: {fileID: 21300000, guid: 7d32a085be076b349abc4d44372576b9, type: 3}
+  instructionGraphic: {fileID: 21300000, guid: f691275f18d76834697f49933abb5be0, type: 3}

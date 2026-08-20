@@ -14,9 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Slide
   timeLimit: 60
   slideType: 0
-  question: 'A patient can understand spoken language, remember recent events, and
-    recognize sounds. Which brain lobe is primarily responsible for these functions? '
-  questionGraphic: {fileID: 21300000, guid: 66f838219e5ebc741bff551ab749eccf, type: 3}
+  question: "Which structure is Broca\u2019s Area?"
+  questionGraphic: {fileID: 21300000, guid: 6bbbb20d900f84d479010a9d2fb6584a, type: 3}
   correctAnsIndex: 0
   infographic: {fileID: 0}
   curRegion: 0

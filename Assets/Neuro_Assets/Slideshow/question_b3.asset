@@ -14,11 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Slide
   timeLimit: 60
   slideType: 0
-  question: 'A 68-year-old woman has no muscle weakness but cannot correctly perform
-    learned tasks, such as putting on a shirt or brushing her teeth, despite understanding
-    the instructions. Which brain lobe is most likely damaged? '
-  questionGraphic: {fileID: 21300000, guid: a99306ce31795a74d8da607555c5d526, type: 3}
-  correctAnsIndex: 2
+  question: Which structure is primarily responsible for processing sensory information?
+  questionGraphic: {fileID: 21300000, guid: 48fe78d343bc8a147b50d192ededae67, type: 3}
+  correctAnsIndex: 0
   infographic: {fileID: 0}
   curRegion: 0
   makeTransparent: 0

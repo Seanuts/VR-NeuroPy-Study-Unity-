@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Slide
   timeLimit: 60
   slideType: 0
-  question: 'A patient can clearly express thoughts in complete sentences during
-    a conversation. Which brain region is primarily responsible for this ability? '
-  questionGraphic: {fileID: 21300000, guid: 5715d81413b4ec34399944e029e73ecc, type: 3}
+  question: Which highlighted brain structure is primarily responsible for regulating
+    breathing, heart rate and swallowing?
+  questionGraphic: {fileID: 21300000, guid: 79fcd45335d49be4fb730a6e1ed3e2bc, type: 3}
   correctAnsIndex: 3
   infographic: {fileID: 0}
   curRegion: 0

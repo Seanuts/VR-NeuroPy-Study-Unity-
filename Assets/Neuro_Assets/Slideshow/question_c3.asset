@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Slide
   timeLimit: 60
   slideType: 0
-  question: 'A patient has difficulty processing and interpreting auditory information
-    despite normal hearing ability. Which highlighted brain lobe is most likely damaged?   '
-  questionGraphic: {fileID: 21300000, guid: 32a0568a97fc22740834180aa2da1123, type: 3}
-  correctAnsIndex: 2
+  question: 'A patient has difficulty in speaking words. Which brain region is most
+    likely damaged? '
+  questionGraphic: {fileID: 21300000, guid: f33aff1b3b65e1c4fbe3e03076259240, type: 3}
+  correctAnsIndex: 1
   infographic: {fileID: 0}
   curRegion: 0
   makeTransparent: 0

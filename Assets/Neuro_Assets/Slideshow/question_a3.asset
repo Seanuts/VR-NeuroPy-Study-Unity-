@@ -14,9 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Slide
   timeLimit: 60
   slideType: 0
-  question: 'After a traumatic brain injury, a patient develops poor impulse control,
-    personality changes, and impaired planning. Which brain lobe is most likely affected?  '
-  questionGraphic: {fileID: 21300000, guid: dd55fcd6d9591584ebbb45231a8d1c59, type: 3}
+  question: Which brain region controls voluntary movement?
+  questionGraphic: {fileID: 21300000, guid: 214d30fdce9b32444890db64458c5974, type: 3}
   correctAnsIndex: 1
   infographic: {fileID: 0}
   curRegion: 0

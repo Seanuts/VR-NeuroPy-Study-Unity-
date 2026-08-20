@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Slide
   timeLimit: 60
   slideType: 0
-  question: 'Where is the temporal lobe located? '
-  questionGraphic: {fileID: 21300000, guid: 30381829a3d526440b1e831e6c29c038, type: 3}
+  question: Where is the temporal lobe located?
+  questionGraphic: {fileID: 21300000, guid: 68d242f2b718bd04398824b756db23c3, type: 3}
   correctAnsIndex: 3
   infographic: {fileID: 0}
   curRegion: 0

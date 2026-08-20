@@ -15,7 +15,7 @@ MonoBehaviour:
   timeLimit: 60
   slideType: 0
   question: Which structure is the frontal lobe?
-  questionGraphic: {fileID: 21300000, guid: 863a9f909c2a1d2458c8efe92da81a1f, type: 3}
+  questionGraphic: {fileID: 21300000, guid: 7dab8a1463324c840902c3ab64758c95, type: 3}
   correctAnsIndex: 0
   infographic: {fileID: 0}
   curRegion: 0

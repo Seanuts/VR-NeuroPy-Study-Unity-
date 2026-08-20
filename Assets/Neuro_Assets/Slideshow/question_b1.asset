@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Slide
   timeLimit: 60
   slideType: 0
-  question: 'Where is the parietal lobe located?  '
-  questionGraphic: {fileID: 21300000, guid: 33c4a278855649b499f0448cf42054b6, type: 3}
+  question: Where is the parietal lobe located?
+  questionGraphic: {fileID: 21300000, guid: d4e46822039e55341860c50ee93eacde, type: 3}
   correctAnsIndex: 1
   infographic: {fileID: 0}
   curRegion: 0

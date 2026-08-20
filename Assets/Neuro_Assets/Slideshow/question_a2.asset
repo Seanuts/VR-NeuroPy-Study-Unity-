@@ -14,10 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Slide
   timeLimit: 60
   slideType: 0
-  question: 'Which lobe is primarily associated with executive functions, planning,
-    and decision-making?  '
-  questionGraphic: {fileID: 21300000, guid: 8217daef079c6274b9b60b309c443b09, type: 3}
-  correctAnsIndex: 0
+  question: Where is the primary motor cortex (M1) located?
+  questionGraphic: {fileID: 21300000, guid: c6f889dad473d924591db3b280cf6e56, type: 3}
+  correctAnsIndex: 1
   infographic: {fileID: 0}
   curRegion: 0
   makeTransparent: 0

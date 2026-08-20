@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Slide
   timeLimit: 60
   slideType: 0
-  question: 'Which region highlights the primary somatosensory cortex (S1)? '
-  questionGraphic: {fileID: 21300000, guid: 73346456c584cbf438104e4db32f04d4, type: 3}
-  correctAnsIndex: 2
+  question: Where is the cerebellum located?
+  questionGraphic: {fileID: 21300000, guid: dc87d6336c9f3a947a8155243ad2fc4d, type: 3}
+  correctAnsIndex: 1
   infographic: {fileID: 0}
   curRegion: 0
   makeTransparent: 0

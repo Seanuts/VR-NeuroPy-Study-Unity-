@@ -33,8 +33,8 @@ public class SlideshowController : MonoBehaviour
     public void StartSlideshow(int curMode, SlideBlock block)
     {
         curBlock = block;
-
-        // Merge slides, adding break if needed
+        
+        // Add break for middle slides
         if(curMode >= 1 && curMode <= 3)
         {
             // Only add break for final 2 slide transitions
@@ -44,10 +44,11 @@ public class SlideshowController : MonoBehaviour
         {
             slideOrder = new List<Slide> {};
         }
+        // Add infographic slides
         slideOrder.AddRange(
             curBlock.infographicSlides
         );
-        // TODO: Randomize the order of the questions
+        // Add randomized question slides
         List<Slide> randomizedQuestions = curBlock.questionSlides.OrderBy(x => UnityEngine.Random.value).ToList();
         slideOrder.AddRange(
             randomizedQuestions
@@ -83,20 +84,21 @@ public class SlideshowController : MonoBehaviour
                 questionGraphic.sprite = slide.questionGraphic;
                 break;
 
+            // TODO: Update so that only blocks graphics durign VR mode
             case SlideType.Infographic:
                 infographicLayout.SetActive(true);
                 questionLayout.SetActive(false);
                 instructionLayout.SetActive(false);
                 infographic.sprite = slide.infographic;
                 // Block brain picture if VR mode
-                if (GameManager.Instance.CurrentMode() == GameModes.VR)
-                {
-                    graphicBlocker.gameObject.SetActive(true);
-                }
-                else
-                {
-                    graphicBlocker.gameObject.SetActive(false);
-                }
+                //if (GameManager.Instance.CurrentMode() == GameModes.VR)
+                //{
+                //    graphicBlocker.gameObject.SetActive(true);
+                //}
+                //else
+                //{
+                //    graphicBlocker.gameObject.SetActive(false);
+                //}
                 break;
         }
 

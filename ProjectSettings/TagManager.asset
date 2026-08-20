@@ -30,6 +30,7 @@ TagManager:
   - QDSUITextInputField
   - SamplesInfoPanel
   - QDSUIToggleCheckboxRadio
+  - OperatingRoom
   layers:
   - Default
   - TransparentFX
@@ -40,7 +41,7 @@ TagManager:
   - BrainPart
   - DesktopUI
   - VRUI
-  - 
+  - OperatingRoom
   - 
   - 
   - 
