@@ -104,9 +104,19 @@ InitTestScene*.unity*
 
 
 #bridge code
-*.exe
-*.obj
-*.pdb
-*.venv
-
 bridge/mingw32_m/
+bridge/**/*.obj
+bridge/**/*.o
+bridge/**/*.pdb
+bridge/**/*.exe
+
+#py
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+
+#OS
+.DS_Store
+Thumbs.db

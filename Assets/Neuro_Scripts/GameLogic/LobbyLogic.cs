@@ -43,7 +43,8 @@ public class LobbyLogic : MonoBehaviour
             errorText.text = "ID must be a number!";
             return;
         }
-        DataManager.pid = pid;
+        //DataManager.pid = pid;
+        //had to comment out due to specific files referencing this not existing
         await SceneManager.LoadSceneAsync("MainScene");
     }
 
