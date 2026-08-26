@@ -128,8 +128,6 @@ public class GameManager : MonoBehaviour
         // Randomize playable game modes
         List<GameModes> randomModes = new List<GameModes> { 
             GameModes.VIRTUAL_3D, GameModes.MIXED_3D, GameModes.MIXED_2D 
-            //GameModes.MIXED_3D //playtest_location
-
         };
         randomModes = randomModes.OrderBy(x => UnityEngine.Random.value).ToList();
         // Create mode sequence (force start w/ instructions)
@@ -142,8 +140,6 @@ public class GameManager : MonoBehaviour
         // Start the first mode
         curModeIndex = 0;
         InitializeMode(curModeIndex);
-        // curModeIndex = modeOrder.IndexOf(GameModes.MIXED_3D); //playtest
-        // InitializeMode(curModeIndex);
     }
 
     void InitializeMode(int state)

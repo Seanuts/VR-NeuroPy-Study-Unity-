@@ -39,6 +39,7 @@ public class SlideshowController : MonoBehaviour
     // For instruction
     [SerializeField] GameObject instructionLayout;
     [SerializeField] Image instructGraphic;
+    [SerializeField] GameObject nextButtonInstruct;
 
     // Slideshow management
     SlideBlock curBlock;
@@ -49,22 +50,20 @@ public class SlideshowController : MonoBehaviour
     public void StartSlideshow(int curMode, SlideBlock block)
     {
         curBlock = block;
-        
-        // Add break for middle slides 
-        if(curMode >= 1 && curMode <= 3)
-        //if (curMode >= 1 && curMode <= 3 && GameManager.Instance.CurrentMode() != GameModes.MIXED_2D) //playtest_location
+
+
+        slideOrder = new List<Slide> {};
+        // Only add break for final 2 blocks
+        if(curMode >= 2)
         {
-            // Only add break for final 2 slide transitions
-            slideOrder = new List<Slide> { breakSlide };
+            slideOrder.Add(breakSlide);
         }
-        else
-        {
-            slideOrder = new List<Slide> {};
-        }
+
         // Add infographic slides
         slideOrder.AddRange(
             curBlock.infographicSlides
         );
+
         // Add randomized question slides
         List<Slide> randomizedQuestions = curBlock.questionSlides.OrderBy(x => UnityEngine.Random.value).ToList();
         slideOrder.AddRange(
@@ -92,6 +91,15 @@ public class SlideshowController : MonoBehaviour
                 questionLayout.SetActive(false);
                 infographicLayout.SetActive(false);
                 instructGraphic.sprite = slide.instructionGraphic;
+                // Toggle next button depending on if instruction is skippable
+                if (!slide.skippable)
+                {
+                    nextButtonInstruct.SetActive(false);
+                }
+                else
+                {
+                    nextButtonInstruct.SetActive(true);
+                }
                 break;
 
             case SlideType.Question:
@@ -102,7 +110,6 @@ public class SlideshowController : MonoBehaviour
                 questionGraphic.sprite = slide.questionGraphic;
                 break;
 
-            // TODO: Update so that only blocks graphics durign VR mode
             case SlideType.Infographic:
                 infographicLayout.SetActive(true);
                 questionLayout.SetActive(false);
@@ -173,7 +180,7 @@ public class SlideshowController : MonoBehaviour
         if (curSlide.slideType == SlideType.Question)
         {
             // If timer expired on question slide then timeout (incorrect)
-           // DataManager.Instance.LogResultData(curSlide.name, "timeout");
+            //DataManager.Instance.LogResultData(curSlide.name, "timeout");
         }
         NextSlide();
     }

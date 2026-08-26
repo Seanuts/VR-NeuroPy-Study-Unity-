@@ -30,4 +30,5 @@ public class Slide : ScriptableObject
 
     // Instruction slide
     public Sprite instructionGraphic;
+    public bool skippable = true;
 }

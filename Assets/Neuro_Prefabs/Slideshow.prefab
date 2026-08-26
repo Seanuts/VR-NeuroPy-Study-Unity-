@@ -1995,6 +1995,7 @@ MonoBehaviour:
   graphicBlocker: {fileID: 6496174927866036289}
   instructionLayout: {fileID: 5349149984823272901}
   instructGraphic: {fileID: 2378262959275909880}
+  nextButtonInstruct: {fileID: 5984369484147093320}
 --- !u!1 &6928699673790777088
 GameObject:
   m_ObjectHideFlags: 0

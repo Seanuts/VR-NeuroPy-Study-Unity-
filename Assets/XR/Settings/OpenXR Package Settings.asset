@@ -957,7 +957,7 @@ MonoBehaviour:
   features:
   - {fileID: 8238680561346971815}
   - {fileID: -6947681402542108279}
-  - {fileID: 8245296986952296117}
+  - {fileID: -2973632259651984209}
   - {fileID: -7214799421490568899}
   - {fileID: -5097159869608518607}
   - {fileID: -1241257093342953086}
@@ -1378,6 +1378,32 @@ MonoBehaviour:
   required: 0
   customRuntimeLoaderName: 
   enableSubsampledLayout: 0
+--- !u!114 &-2973632259651984209
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90ae1e8c3c7a542bba339faf2e771c5a, type: 3}
+  m_Name: AndroidXRSupportFeature Standalone
+  m_EditorClassIdentifier: Unity.XR.AndroidOpenXR::UnityEngine.XR.OpenXR.Features.Android.AndroidXRSupportFeature
+  m_enabled: 0
+  nameUi: Android XR Support
+  version: 1.0.0
+  featureIdInternal: com.unity.openxr.feature.androidxr-support
+  openxrExtensionStrings: 
+  company: Unity Technologies
+  priority: 0
+  targetOpenXRApiVersion: 
+  required: 0
+  customRuntimeLoaderName: 
+  optionalFeatures: []
+  symmetricProjection: 0
+  optimizeBufferDiscards: 1
+  multiviewRenderRegionsOptimizationMode: 0
 --- !u!114 &-2916677846153913727
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2724,8 +2750,8 @@ MonoBehaviour:
   features:
   - {fileID: -7050135346569913583}
   - {fileID: -4802088879716344986}
-  - {fileID: 624971111955375320}
-  - {fileID: 1860988219658298615}
+  - {fileID: 8315293592397820125}
+  - {fileID: 8245296986952296117}
   - {fileID: 7871898413119048673}
   - {fileID: 7745036081722864337}
   - {fileID: -3427454600916093239}
@@ -2736,7 +2762,7 @@ MonoBehaviour:
   - {fileID: -3888651525236538766}
   - {fileID: 3742417501757797044}
   - {fileID: -888654952463490714}
-  - {fileID: -5063164496992872510}
+  - {fileID: 7589309109674100426}
   - {fileID: -6388701680119398297}
   - {fileID: 888916187773160642}
   - {fileID: -3558940939930126501}
@@ -4093,7 +4119,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 90ae1e8c3c7a542bba339faf2e771c5a, type: 3}
-  m_Name: AndroidXRSupportFeature Standalone
+  m_Name: AndroidXRSupportFeature Android
   m_EditorClassIdentifier: Unity.XR.AndroidOpenXR::UnityEngine.XR.OpenXR.Features.Android.AndroidXRSupportFeature
   m_enabled: 0
   nameUi: Android XR Support
