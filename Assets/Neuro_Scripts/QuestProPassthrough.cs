@@ -268,7 +268,8 @@ public static class QuestProPassthrough
             bool belongsToSimulatedOnly = slideshowOnlyInSimulatedView &&
                                            IsInHierarchy(graphic.transform, slideshowTransform) &&
                                            !IsInHierarchy(graphic.transform, screenTransform);
-            if (!belongsToScreen && !belongsToSimulatedOnly)
+            bool belongsToTransitionFade = graphic.GetComponentInParent<LearningBlockFade>(true) != null;
+            if (!belongsToScreen && !belongsToSimulatedOnly && !belongsToTransitionFade)
                 graphic.enabled = false;
         }
     }
@@ -317,8 +318,10 @@ public static class QuestProPassthrough
             {
                 camera.cullingMask &= ~isolatedLayerMask;
                 camera.clearFlags = CameraClearFlags.SolidColor;
-                Color color = camera.backgroundColor;
-                camera.backgroundColor = new Color(color.r, color.g, color.b, 0f);
+                // Passthrough needs an actually clear eye buffer. Retaining
+                // Unity's default blue RGB values with alpha zero can still
+                // leak a blue cast through device-side compositing.
+                camera.backgroundColor = Color.clear;
             }
         }
     }
@@ -331,9 +334,7 @@ public static class QuestProPassthrough
         camera.clearFlags = CameraClearFlags.SolidColor;
         if (isolatedLayer >= 0)
             camera.cullingMask &= ~(1 << isolatedLayer);
-        Color color = camera.backgroundColor;
-        if (color.a != 0f)
-            camera.backgroundColor = new Color(color.r, color.g, color.b, 0f);
+        camera.backgroundColor = Color.clear;
     }
 
     static Camera FindSimulatedCamera(GameObject simulatedPlayer)

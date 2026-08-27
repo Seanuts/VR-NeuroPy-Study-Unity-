@@ -46,7 +46,7 @@ public class SimulatedPlayer : MonoBehaviour
     Vector2 externalMouseBoundsPosition;
     bool hasExternalMouseBoundsPosition;
 
-    [SerializeField] float externalMouseSensitivity = 1f;
+    float externalMouseSensitivity = 2f; //mouse sensitivity *2 since prev was too sluggish
     GameObject virtualHoveredObject;
     PointerEventData virtualPointerData;
     RaycastResult virtualRaycast;
@@ -79,6 +79,7 @@ public class SimulatedPlayer : MonoBehaviour
     bool previousCursorVisible;
     CursorLockMode previousCursorLockState;
     bool mixed3DBrainViewingMode;
+    BrainOrbit mixed3DBrainBeingViewed;
 
     void Awake()
     {
@@ -688,7 +689,10 @@ public class SimulatedPlayer : MonoBehaviour
         if (Mouse.current.leftButton.wasPressedThisFrame)
         {
             if (!mixed3DBrainViewingMode && IsVirtualBrainTarget())
+            {
                 mixed3DBrainViewingMode = true;
+                mixed3DBrainBeingViewed = virtualRaycast.gameObject.GetComponentInParent<BrainOrbit>();
+            }
 
             PressVirtualPointer(null);
         }
@@ -716,8 +720,14 @@ public class SimulatedPlayer : MonoBehaviour
         if (!mixed3DBrainViewingMode && !virtualPointerPressed)
             return;
 
+        // Match the Next-button behavior: restore the selected brain to the
+        // orientation it had before the user began controlling it.
+        if (mixed3DBrainBeingViewed != null)
+            mixed3DBrainBeingViewed.ResetRotation();
+
         ReleaseVirtualPointer(false);
         mixed3DBrainViewingMode = false;
+        mixed3DBrainBeingViewed = null;
     }
 
     bool TryReadRightControllerStick(out Vector2 stickInput)
