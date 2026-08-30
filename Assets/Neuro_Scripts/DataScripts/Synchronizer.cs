@@ -31,10 +31,10 @@ public class Synchronizer : MonoBehaviour
         }
     }
 
-    //void Start()
-    //{
-    //    DataManager.Instance.LogEvent("Connected Sync Server");
-    //}
+    void Start()
+    {
+        DataManager.Instance.LogEvent("Connected Sync Server");
+    }
 
     public async void SendTrigger()
     {

@@ -23,8 +23,9 @@ public class SlideshowController : MonoBehaviour
         }
     }
 
-    // Default break slide
+    // Global slides
     [SerializeField] Slide breakSlide;
+    [SerializeField] Slide baselineSlide;
 
     // For question
     [SerializeField] GameObject questionLayout;
@@ -69,6 +70,12 @@ public class SlideshowController : MonoBehaviour
         slideOrder.AddRange(
             randomizedQuestions
         );
+
+        // Add baseline slide if instruction block
+        if( GameManager.Instance.CurrentMode() == GameModes.INSTRUCTIONS)
+        {
+            slideOrder.Add(baselineSlide);
+        }
         
         // Start at slide 0
         curSlideIndex = 0;
@@ -161,11 +168,11 @@ public class SlideshowController : MonoBehaviour
         Slide curSlide = slideOrder[curSlideIndex];
         if (index == curSlide.correctAnsIndex)
         {
-            //DataManager.Instance.LogResultData(curSlide.name, "correct");
+           DataManager.Instance.LogResultData(curSlide.name, "correct");
         }
         else
         {
-           // DataManager.Instance.LogResultData(curSlide.name, "incorrect");
+           DataManager.Instance.LogResultData(curSlide.name, "incorrect");
         }
         NextSlide();
     }
@@ -180,7 +187,7 @@ public class SlideshowController : MonoBehaviour
         if (curSlide.slideType == SlideType.Question)
         {
             // If timer expired on question slide then timeout (incorrect)
-            //DataManager.Instance.LogResultData(curSlide.name, "timeout");
+            DataManager.Instance.LogResultData(curSlide.name, "timeout");
         }
         NextSlide();
     }

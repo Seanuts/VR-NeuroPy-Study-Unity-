@@ -294,7 +294,7 @@ public class GameManager : MonoBehaviour
 
     void InitVirtual3D()
     {
-        player.transform.localPosition = new Vector3(0, -1.5f, -6);
+        player.transform.localPosition = new Vector3(0, -1.5f, -6.5f);
         player.transform.localRotation = Quaternion.identity;
         
         // Disable brain for instructions

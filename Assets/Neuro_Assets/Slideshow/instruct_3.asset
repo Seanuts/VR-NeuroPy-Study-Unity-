@@ -20,4 +20,5 @@ MonoBehaviour:
   infographic: {fileID: 0}
   curRegion: 0
   makeTransparent: 0
-  instructionGraphic: {fileID: 21300000, guid: f691275f18d76834697f49933abb5be0, type: 3}
+  instructionGraphic: {fileID: 21300000, guid: 1a0d8da1e05963245bf47eff222f2d2f, type: 3}
+  skippable: 1
