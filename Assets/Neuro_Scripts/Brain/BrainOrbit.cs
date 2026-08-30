@@ -1,26 +1,25 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using UnityEngine.XR.Interaction.Toolkit;
-using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.Rendering;
+using UnityEngine.Serialization;
 using XRCommonUsages = UnityEngine.XR.CommonUsages;
 using XRInputDevice = UnityEngine.XR.InputDevice;
 using XRInputDevices = UnityEngine.XR.InputDevices;
 using XRNode = UnityEngine.XR.XRNode;
 
 public class BrainOrbit : MonoBehaviour,
-    IPointerEnterHandler,
-    IPointerExitHandler,
     IPointerDownHandler,
     IPointerUpHandler,
     IPointerMoveHandler
 {
-    [Header("Crosshair orbit")]
-    [SerializeField] float crosshairOrbitSensitivity = 0.3f;
-    [SerializeField] Color hoverHighlightColor = new Color(0.2f, 0.8f, 1f, 1f);
-    [SerializeField, Range(0f, 1f)] float hoverHighlightStrength = 0.35f;
-    [SerializeField] bool createCrosshairCollider = true;
+    [Header("Mouse orbit")]
+    [FormerlySerializedAs("crosshairOrbitSensitivity")]
+    [SerializeField, Min(0f)] float mouseOrbitSensitivity = 0.3f;
+    [SerializeField, Range(0f, 1f)] float momentumStrength = 0.1f;
+    [SerializeField, Min(0f)] float momentumDamping = 10f;
+    [FormerlySerializedAs("createCrosshairCollider")]
+    [SerializeField] bool createMouseInteractionCollider = true;
 
     [Header("Debug selection sphere")]
     // These remain source-controlled so changing the values below is not
@@ -37,12 +36,11 @@ public class BrainOrbit : MonoBehaviour,
     [SerializeField] private InputActionReference resetButtonAction;
 
     Quaternion initialRotation;
-    bool isCrosshairOrbiting;
-    bool isCrosshairHovered;
-    int crosshairPointerId;
-    Renderer[] hoverRenderers;
-    MaterialPropertyBlock hoverPropertyBlock;
-    SphereCollider crosshairCollider;
+    bool isMouseOrbiting;
+    int mousePointerId;
+    Vector3 momentumDegreesPerSecond;
+    Renderer[] brainRenderers;
+    SphereCollider mouseInteractionCollider;
     GameObject selectionSphere;
     Collider selectionSphereCollider;
     Material selectionSphereMaterial;
@@ -51,11 +49,10 @@ public class BrainOrbit : MonoBehaviour,
     private void Awake()
     {
         initialRotation = transform.rotation;
-        hoverRenderers = GetComponentsInChildren<Renderer>(true);
-        hoverPropertyBlock = new MaterialPropertyBlock();
+        brainRenderers = GetComponentsInChildren<Renderer>(true);
 
-        if (createCrosshairCollider)
-            CreateCrosshairCollider();
+        if (createMouseInteractionCollider)
+            CreateMouseInteractionCollider();
     }
     private void OnEnable()
     {
@@ -68,10 +65,9 @@ public class BrainOrbit : MonoBehaviour,
 
     private void OnDisable()
     {
-        isCrosshairOrbiting = false;
-        isCrosshairHovered = false;
-        crosshairPointerId = 0;
-        SetHoverHighlight(false);
+        isMouseOrbiting = false;
+        mousePointerId = 0;
+        momentumDegreesPerSecond = Vector3.zero;
 
         SetJoystickActionEnabled(false);
 
@@ -85,9 +81,13 @@ public class BrainOrbit : MonoBehaviour,
     private void Update()
     {
         bool isVirtual3D = IsVirtual3DMode();
+        bool isMixed3D = IsMixed3DMode();
         SetJoystickActionEnabled(isVirtual3D && rightJoystickAction != null &&
                                  rightJoystickAction.action != null);
-        SetDebugSelectionSphereVisible(IsMixed3DMode());
+        SetDebugSelectionSphereVisible(isMixed3D);
+
+        if (isMixed3D && !isMouseOrbiting)
+            ApplyMomentum();
 
         if (!isVirtual3D)
             return;
@@ -116,37 +116,27 @@ public class BrainOrbit : MonoBehaviour,
         ResetRotation();
     }
 
-    public void OnPointerEnter(PointerEventData eventData)
-    {
-        isCrosshairHovered = true;
-        SetHoverHighlight(true);
-    }
-
-    public void OnPointerExit(PointerEventData eventData)
-    {
-        isCrosshairHovered = false;
-        if (!isCrosshairOrbiting)
-            SetHoverHighlight(false);
-    }
-
     public void OnPointerDown(PointerEventData eventData)
     {
         if (eventData.button != PointerEventData.InputButton.Left)
             return;
 
-        isCrosshairOrbiting = true;
-        crosshairPointerId = eventData.pointerId;
-        SetHoverHighlight(true);
+        isMouseOrbiting = true;
+        mousePointerId = eventData.pointerId;
+        momentumDegreesPerSecond = Vector3.zero;
     }
 
     public void OnPointerMove(PointerEventData eventData)
     {
-        if (!isCrosshairOrbiting || eventData.pointerId != crosshairPointerId)
+        if (!isMouseOrbiting || eventData.pointerId != mousePointerId)
             return;
 
         Vector2 delta = eventData.delta;
         if (delta == Vector2.zero)
+        {
+            momentumDegreesPerSecond = Vector3.zero;
             return;
+        }
 
         Camera simulatedCamera = SimulatedPlayer.ActiveSimulatedCamera;
         Transform camTransform = simulatedCamera != null
@@ -160,98 +150,73 @@ public class BrainOrbit : MonoBehaviour,
         // the screen-space rotation axis, so flicking in different directions
         // produces a different globe-like rotation.
         Vector3 localAxis = new Vector3(delta.y, -delta.x, 0f);
-        float angle = localAxis.magnitude * crosshairOrbitSensitivity;
+        float angle = localAxis.magnitude * mouseOrbitSensitivity;
         Vector3 worldAxis = camTransform.TransformDirection(localAxis.normalized);
         transform.rotation = Quaternion.AngleAxis(angle, worldAxis) * transform.rotation;
+
+        float deltaTime = Mathf.Max(Time.unscaledDeltaTime, 0.0001f);
+        momentumDegreesPerSecond = worldAxis * (angle / deltaTime) * momentumStrength;
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        if (eventData.pointerId == crosshairPointerId)
+        if (eventData.pointerId == mousePointerId)
         {
-            isCrosshairOrbiting = false;
-            crosshairPointerId = 0;
-
-            if (!isCrosshairHovered)
-                SetHoverHighlight(false);
+            isMouseOrbiting = false;
+            mousePointerId = 0;
         }
     }
 
     public void ResetRotation()
     {
+        momentumDegreesPerSecond = Vector3.zero;
         transform.rotation = initialRotation;
     }
 
-    void SetHoverHighlight(bool highlighted)
+    void ApplyMomentum()
     {
-        if (hoverRenderers == null)
-            return;
-
-        if (!highlighted)
+        float speed = momentumDegreesPerSecond.magnitude;
+        if (speed < 0.05f)
         {
-            foreach (Renderer renderer in hoverRenderers)
-                if (renderer != null)
-                    renderer.SetPropertyBlock(null);
-
+            momentumDegreesPerSecond = Vector3.zero;
             return;
         }
 
-        foreach (Renderer renderer in hoverRenderers)
-        {
-            if (renderer == null)
-                continue;
-
-            Color baseColor = Color.white;
-            Material material = renderer.sharedMaterial;
-            if (material != null)
-            {
-                if (material.HasProperty("_BaseColor"))
-                    baseColor = material.GetColor("_BaseColor");
-                else if (material.HasProperty("_Color"))
-                    baseColor = material.GetColor("_Color");
-            }
-
-            Color highlightedColor = Color.Lerp(baseColor, hoverHighlightColor, hoverHighlightStrength);
-            renderer.GetPropertyBlock(hoverPropertyBlock);
-
-            if (material != null && material.HasProperty("_BaseColor"))
-                hoverPropertyBlock.SetColor("_BaseColor", highlightedColor);
-            if (material != null && material.HasProperty("_Color"))
-                hoverPropertyBlock.SetColor("_Color", highlightedColor);
-
-            renderer.SetPropertyBlock(hoverPropertyBlock);
-        }
+        float deltaTime = Time.unscaledDeltaTime;
+        transform.rotation = Quaternion.AngleAxis(
+            speed * deltaTime, momentumDegreesPerSecond / speed) * transform.rotation;
+        momentumDegreesPerSecond *= Mathf.Exp(-momentumDamping * deltaTime);
     }
 
-    void CreateCrosshairCollider()
+    void CreateMouseInteractionCollider()
     {
-        if (hoverRenderers == null || hoverRenderers.Length == 0)
+        if (brainRenderers == null || brainRenderers.Length == 0)
             return;
 
-        Bounds bounds = hoverRenderers[0].bounds;
-        for (int i = 1; i < hoverRenderers.Length; i++)
-            bounds.Encapsulate(hoverRenderers[i].bounds);
+        Bounds bounds = brainRenderers[0].bounds;
+        for (int i = 1; i < brainRenderers.Length; i++)
+            bounds.Encapsulate(brainRenderers[i].bounds);
 
-        crosshairCollider = gameObject.AddComponent<SphereCollider>();
-        crosshairCollider.center = transform.InverseTransformPoint(bounds.center) +
+        mouseInteractionCollider = gameObject.AddComponent<SphereCollider>();
+        mouseInteractionCollider.center = transform.InverseTransformPoint(bounds.center) +
             Vector3.up * selectionSphereVerticalOffset;
 
         Vector3 localExtents = transform.InverseTransformVector(bounds.extents);
-        crosshairCollider.radius = localExtents.magnitude * selectionSphereSize;
+        mouseInteractionCollider.radius = localExtents.magnitude * selectionSphereSize;
 
         CreateSelectionSphereVisual();
     }
 
     void CreateSelectionSphereVisual()
     {
-        if (!showSelectionSphere || crosshairCollider == null)
+        if (!showSelectionSphere || mouseInteractionCollider == null)
             return;
 
         selectionSphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         selectionSphere.name = "BrainSelectionDebugSphere";
         selectionSphere.transform.SetParent(transform, false);
-        selectionSphere.transform.localPosition = crosshairCollider.center;
-        selectionSphere.transform.localScale = Vector3.one * (crosshairCollider.radius * 2f);
+        selectionSphere.transform.localPosition = mouseInteractionCollider.center;
+        selectionSphere.transform.localScale = Vector3.one * (mouseInteractionCollider.radius * 2f);
 
         Collider visualCollider = selectionSphere.GetComponent<Collider>();
         if (visualCollider != null)
@@ -316,8 +281,8 @@ public class BrainOrbit : MonoBehaviour,
 
     void SetDebugSelectionSphereVisible(bool visible)
     {
-        if (crosshairCollider != null)
-            crosshairCollider.enabled = visible;
+        if (mouseInteractionCollider != null)
+            mouseInteractionCollider.enabled = visible;
 
         if (selectionSphereCollider != null)
             selectionSphereCollider.enabled = visible;

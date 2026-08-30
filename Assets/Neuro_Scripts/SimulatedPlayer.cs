@@ -3,10 +3,6 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
-using XRCommonUsages = UnityEngine.XR.CommonUsages;
-using XRInputDevice = UnityEngine.XR.InputDevice;
-using XRInputDevices = UnityEngine.XR.InputDevices;
-using XRNode = UnityEngine.XR.XRNode;
 
 public class SimulatedPlayer : MonoBehaviour
 {
@@ -15,15 +11,15 @@ public class SimulatedPlayer : MonoBehaviour
     [SerializeField] Camera simCamera;
     [SerializeField] RectTransform simScreen;
 
-    [Header("Screen crosshair")]
-    [SerializeField] Color crosshairColor = Color.white;
-    float crosshairLength = 6f;
-    float crosshairThickness = 1f;
+    [Header("Mixed3D mouse pointer")]
+    [SerializeField, Min(1f)] float mixed3DPointerSize = 18f;
+    [SerializeField, Min(0f)] float mixed3DPointerOutlineThickness = 1f;
+    [SerializeField, Min(0.01f)] float mixed3DMouseSensitivity = 2f;
+    [SerializeField] Color mixed3DPointerColor = Color.white;
+    [Tooltip("Fallback orientation used only when GameScreen cannot be found.")]
+    [SerializeField] Vector3 mixed3DCameraLocalEulerAngles = Vector3.zero;
 
-    [Header("Mixed3D controller camera")]
-    [SerializeField] InputActionProperty rightControllerLookAction;
-    [SerializeField] float rightControllerLookSensitivity = 90f;
-    [SerializeField] float rightControllerLookDeadzone = 0.15f;
+    [Header("Virtual pointer")]
     [SerializeField] float pointerSmoothing = 18f;
     [SerializeField] float pointerDeadzonePixels = 1.5f;
 
@@ -34,7 +30,10 @@ public class SimulatedPlayer : MonoBehaviour
 
     float curYaw;
     float curPitch;
-    RectTransform crosshair;
+    RectTransform mixed3DPointer;
+    Vector2 mixed3DPointerViewport = new Vector2(.5f, .5f);
+    bool mixed3DMouseMode;
+    Transform mixed3DCameraTarget;
     GraphicRaycaster simulatedCanvasRaycaster;
     Canvas simulatedCanvas;
     GraphicRaycaster externalMouseRaycaster;
@@ -43,6 +42,7 @@ public class SimulatedPlayer : MonoBehaviour
     Camera externalMouseOriginalCamera;
     RectTransform externalMouseBounds;
     RectTransform mouseCursor;
+    Sprite mouseArrowSprite;
     Vector2 externalMouseBoundsPosition;
     bool hasExternalMouseBoundsPosition;
 
@@ -54,10 +54,8 @@ public class SimulatedPlayer : MonoBehaviour
     // VR Pointer Tracking
     Vector2 lastPointerViewport;
     Vector2 smoothedPointerViewport;
-    Vector2 currentPointerViewport;
     bool hasLastPointerViewport;
     bool hasSmoothedPointerViewport;
-    bool hasCurrentPointerViewport;
     bool isPointerOverScreen;
 
     // Interaction Tracking
@@ -76,10 +74,6 @@ public class SimulatedPlayer : MonoBehaviour
     bool externalMouseMode;
     readonly List<BaseInputModule> disabledInputModules = new List<BaseInputModule>();
     readonly List<bool> disabledInputModuleStates = new List<bool>();
-    bool previousCursorVisible;
-    CursorLockMode previousCursorLockState;
-    bool mixed3DBrainViewingMode;
-    BrainOrbit mixed3DBrainBeingViewed;
 
     void Awake()
     {
@@ -100,13 +94,14 @@ public class SimulatedPlayer : MonoBehaviour
                 relay = simScreen.gameObject.AddComponent<ScreenPointerRelay>();
             relay.Initialize(this);
 
-            CreateCrosshair();
-            SetCrosshairVisible(false);
+            CreateMixed3DPointer();
+            SetMixed3DPointerVisible(false);
         }
 
         Transform gameScreen = FindSiblingTransform("GameScreen");
         if (gameScreen != null)
         {
+            mixed3DCameraTarget = gameScreen;
             simulatedCanvas = gameScreen.GetComponent<Canvas>();
             simulatedCanvasRaycaster = gameScreen.GetComponent<GraphicRaycaster>();
             if (simulatedCanvas != null)
@@ -125,21 +120,18 @@ public class SimulatedPlayer : MonoBehaviour
 
         ActiveSimulatedCamera = simCamera;
 
-        if (rightControllerLookAction.action != null)
-            rightControllerLookAction.action.Enable();
     }
 
     void OnDisable()
     {
         SetExternalMouseMode(false);
+        SetMixed3DMouseMode(false);
         ReleaseVirtualPointer(false);
-        mixed3DBrainViewingMode = false;
+        ClearVirtualHover();
 
         if (ActiveSimulatedCamera == simCamera)
             ActiveSimulatedCamera = null;
 
-        if (rightControllerLookAction.action != null)
-            rightControllerLookAction.action.Disable();
     }
 
     void Start()
@@ -154,14 +146,11 @@ public class SimulatedPlayer : MonoBehaviour
         bool shouldUseExternalMouse = GameManager.Instance != null &&
                                       GameManager.Instance.UsesExternalMouse;
         SetExternalMouseMode(shouldUseExternalMouse);
-        if (!IsMixed3DMode())
-            ExitMixed3DBrainViewingMode();
+        bool isMixed3D = IsMixed3DMode();
+        SetMixed3DMouseMode(isMixed3D);
 
-        if (!externalMouseMode)
+        if (!externalMouseMode && !isMixed3D)
             HideDesktopCursor();
-        SetCrosshairVisible(!externalMouseMode &&
-                            simScreen != null &&
-                            simScreen.gameObject.activeInHierarchy);
 
         if (externalMouseMode)
         {
@@ -169,8 +158,9 @@ public class SimulatedPlayer : MonoBehaviour
             return;
         }
 
-        if (IsMixed3DMode())
+        if (isMixed3D)
         {
+            LockMixed3DCamera();
             UpdateMixed3DMouseInput();
             return;
         }
@@ -207,8 +197,6 @@ public class SimulatedPlayer : MonoBehaviour
         {
             ConfigureExternalMouseCanvas();
 
-            previousCursorVisible = Cursor.visible;
-            previousCursorLockState = Cursor.lockState;
             Cursor.visible = true;
             Cursor.lockState = CursorLockMode.None;
 
@@ -470,7 +458,7 @@ public class SimulatedPlayer : MonoBehaviour
             mouseCursor.sizeDelta = new Vector2(18f, 18f);
 
             Image image = mouseCursor.GetComponent<Image>();
-            image.sprite = CreateMouseArrowSprite();
+            image.sprite = GetMouseArrowSprite();
             image.color = Color.white;
             image.raycastTarget = false;
 
@@ -484,7 +472,10 @@ public class SimulatedPlayer : MonoBehaviour
         mouseCursor.SetAsLastSibling();
     }
 
-    Sprite CreateMouseArrowSprite(){ //arrow for mouse
+    Sprite GetMouseArrowSprite(){ //arrow shared by the separate Mixed2D and Mixed3D cursor objects
+        if (mouseArrowSprite != null)
+            return mouseArrowSprite;
+
         const int size = 18;
         const int antialiasSamples = 4;
         Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
@@ -528,7 +519,9 @@ public class SimulatedPlayer : MonoBehaviour
         texture.wrapMode = TextureWrapMode.Clamp;
         texture.SetPixels32(pixels);
         texture.Apply();
-        return Sprite.Create(texture, new Rect(0f, 0f, size, size), new Vector2(0f, 1f), size);
+        mouseArrowSprite = Sprite.Create(
+            texture, new Rect(0f, 0f, size, size), new Vector2(0f, 1f), size);
+        return mouseArrowSprite;
     }
 
     bool PointInsidePolygon(Vector2 point, Vector2[] polygon)
@@ -576,25 +569,29 @@ public class SimulatedPlayer : MonoBehaviour
         return Camera.main != null ? Camera.main : simCamera;
     }
 
-    void CreatePointerBar(Transform parent, string objectName, Vector2 size, Sprite sprite)
+    void CreateMixed3DPointer()
     {
-        GameObject barObject = new GameObject(objectName, typeof(RectTransform), typeof(Image));
-        barObject.transform.SetParent(parent, false);
+        if (mixed3DPointer != null || simScreen == null)
+            return;
 
-        RectTransform bar = (RectTransform)barObject.transform;
-        bar.anchorMin = new Vector2(.5f, .5f);
-        bar.anchorMax = new Vector2(.5f, .5f);
-        bar.pivot = new Vector2(.5f, .5f);
-        bar.sizeDelta = size;
+        mixed3DPointer = new GameObject(
+            "Mixed3DMouseCursor", typeof(RectTransform), typeof(Image)).GetComponent<RectTransform>();
+        mixed3DPointer.SetParent(simScreen, false);
+        mixed3DPointer.anchorMin = new Vector2(.5f, .5f);
+        mixed3DPointer.anchorMax = new Vector2(.5f, .5f);
+        mixed3DPointer.pivot = new Vector2(0f, 1f);
+        mixed3DPointer.sizeDelta = Vector2.one * mixed3DPointerSize;
+        mixed3DPointer.SetAsLastSibling();
 
-        Image image = barObject.GetComponent<Image>();
-        image.sprite = sprite;
-        image.color = crosshairColor;
+        Image image = mixed3DPointer.GetComponent<Image>();
+        image.sprite = GetMouseArrowSprite();
+        image.color = mixed3DPointerColor;
         image.raycastTarget = false;
 
-        Outline outline = barObject.AddComponent<Outline>();
-        outline.effectColor = Color.black;
-        outline.effectDistance = new Vector2(1f, -1f);
+        Outline outline = mixed3DPointer.gameObject.AddComponent<Outline>();
+        outline.effectColor = new Color(0f, 0f, 0f, .95f);
+        outline.effectDistance = new Vector2(
+            mixed3DPointerOutlineThickness, -mixed3DPointerOutlineThickness);
         outline.useGraphicAlpha = true;
     }
 
@@ -623,50 +620,33 @@ public class SimulatedPlayer : MonoBehaviour
         return FindSiblingTransform(objectName) as RectTransform;
     }
 
-    void CreateCrosshair()
+    void SetMixed3DMouseMode(bool enabled)
     {
-        if (crosshair != null) return;
+        if (mixed3DMouseMode == enabled)
+            return;
 
-        crosshair = new GameObject("SimScreenCrosshair", typeof(RectTransform)).GetComponent<RectTransform>();
-        crosshair.SetParent(simScreen, false);
-        crosshair.anchorMin = new Vector2(.5f, .5f);
-        crosshair.anchorMax = new Vector2(.5f, .5f);
-        crosshair.pivot = new Vector2(.5f, .5f);
-        crosshair.sizeDelta = Vector2.zero;
-        crosshair.SetAsLastSibling();
+        mixed3DMouseMode = enabled;
+        ReleaseVirtualPointer(false);
+        ClearVirtualHover();
+        ResetVirtualPointerTracking();
 
-        Sprite barSprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0f, 0f, 1f, 1f), new Vector2(.5f, .5f), 1f);
-
-        CreatePointerBar(crosshair, "Horizontal", new Vector2(crosshairLength, crosshairThickness), barSprite);
-        CreatePointerBar(crosshair, "Vertical", new Vector2(crosshairThickness, crosshairLength), barSprite);
+        if (enabled)
+        {
+            mixed3DPointerViewport = ClampVirtualPointerViewport(new Vector2(.5f, .5f));
+            HideDesktopCursor();
+            LockMixed3DCamera();
+            UpdateMixed3DPointerVisual();
+        }
+        else
+        {
+            SetMixed3DPointerVisible(false);
+        }
     }
 
     bool IsMixed3DMode()
     {
         // GameManager enables SimScreen only for the Mixed_3D block.
         return simScreen != null && simScreen.gameObject.activeInHierarchy;
-    }
-
-    void UpdateMixed3DCameraFromRightStick()
-    {
-        Vector2 stickInput = Vector2.zero;
-        if (rightControllerLookAction.action != null)
-            stickInput = rightControllerLookAction.action.ReadValue<Vector2>();
-
-        // Keep this functional when the scene's action property is not assigned
-        // (or when the editor simulator does not drive that action). The XR
-        // device API exposes the same right-controller thumbstick directly.
-        if (stickInput.sqrMagnitude <= rightControllerLookDeadzone * rightControllerLookDeadzone)
-            TryReadRightControllerStick(out stickInput);
-
-        if (stickInput.sqrMagnitude <= rightControllerLookDeadzone * rightControllerLookDeadzone)
-            return;
-
-        float deltaTime = Time.unscaledDeltaTime;
-        curYaw += stickInput.x * rightControllerLookSensitivity * deltaTime;
-        curPitch -= stickInput.y * rightControllerLookSensitivity * deltaTime;
-        curPitch = Mathf.Clamp(curPitch, minPitch, maxPitch);
-        ApplyCameraRotation();
     }
 
     void UpdateMixed3DMouseInput()
@@ -676,105 +656,60 @@ public class SimulatedPlayer : MonoBehaviour
 
         isPointerOverScreen = false;
         Vector2 mouseDelta = Mouse.current.delta.ReadValue();
-        bool rightClicked = Mouse.current.rightButton.wasPressedThisFrame;
+        Vector2 screenSize = new Vector2(Mathf.Max(1, Screen.width), Mathf.Max(1, Screen.height));
+        mixed3DPointerViewport += Vector2.Scale(mouseDelta / screenSize, Vector2.one) *
+            mixed3DMouseSensitivity;
+        mixed3DPointerViewport = ClampVirtualPointerViewport(mixed3DPointerViewport);
 
-        if (rightClicked)
-            ExitMixed3DBrainViewingMode();
-
-        // The mixed3D crosshair is intentionally fixed at the center of the
-        // simulated screen. Mouse movement becomes pointer drag delta, while
-        // the camera uses the same delta whenever brain viewing is inactive.
-        UpdateVirtualPointerAtViewport(new Vector2(.5f, .5f), null, mouseDelta);
+        UpdateVirtualPointerAtViewport(mixed3DPointerViewport, null, null, false);
 
         if (Mouse.current.leftButton.wasPressedThisFrame)
-        {
-            if (!mixed3DBrainViewingMode && IsVirtualBrainTarget())
-            {
-                mixed3DBrainViewingMode = true;
-                mixed3DBrainBeingViewed = virtualRaycast.gameObject.GetComponentInParent<BrainOrbit>();
-            }
-
             PressVirtualPointer(null);
-        }
 
         if (Mouse.current.leftButton.wasReleasedThisFrame)
             ReleaseVirtualPointer(true);
 
-        if (!mixed3DBrainViewingMode && mouseDelta != Vector2.zero)
+        if (Mouse.current.rightButton.wasPressedThisFrame)
+            ResetMixed3DBrain();
+    }
+
+    void LockMixed3DCamera()
+    {
+        Transform cameraTransform = simCamera != null ? simCamera.transform : transform;
+        if (mixed3DCameraTarget != null)
         {
-            curYaw += mouseDelta.x * mouseSensitivity;
-            curPitch -= mouseDelta.y * mouseSensitivity;
-            curPitch = Mathf.Clamp(curPitch, minPitch, maxPitch);
-            ApplyCameraRotation();
+            Vector3 forward = mixed3DCameraTarget.position - cameraTransform.position;
+            if (forward.sqrMagnitude > Mathf.Epsilon)
+            {
+                cameraTransform.rotation = Quaternion.LookRotation(
+                    forward.normalized, mixed3DCameraTarget.up);
+                return;
+            }
         }
+
+        cameraTransform.localRotation = Quaternion.Euler(mixed3DCameraLocalEulerAngles);
     }
 
-    bool IsVirtualBrainTarget()
+    void UpdateMixed3DPointerVisual()
     {
-        return hasVirtualRaycast && virtualRaycast.gameObject != null &&
-               virtualRaycast.gameObject.GetComponentInParent<BrainOrbit>() != null;
-    }
-
-    void ExitMixed3DBrainViewingMode()
-    {
-        if (!mixed3DBrainViewingMode && !virtualPointerPressed)
+        if (mixed3DPointer == null || simScreen == null)
             return;
 
-        // Match the Next-button behavior: restore the selected brain to the
-        // orientation it had before the user began controlling it.
-        if (mixed3DBrainBeingViewed != null)
-            mixed3DBrainBeingViewed.ResetRotation();
-
-        ReleaseVirtualPointer(false);
-        mixed3DBrainViewingMode = false;
-        mixed3DBrainBeingViewed = null;
-    }
-
-    bool TryReadRightControllerStick(out Vector2 stickInput)
-    {
-        stickInput = Vector2.zero;
-        XRInputDevice rightController = XRInputDevices.GetDeviceAtXRNode(XRNode.RightHand);
-        if (!rightController.isValid)
-            return false;
-
-        bool hasPrimaryAxis = rightController.TryGetFeatureValue(
-            XRCommonUsages.primary2DAxis, out Vector2 primaryAxis);
-        if (hasPrimaryAxis)
-            stickInput = primaryAxis;
-
-        // Some XR runtimes expose the thumbstick as the secondary 2D axis.
-        Vector2 secondaryAxis;
-        bool hasSecondaryAxis = rightController.TryGetFeatureValue(
-            XRCommonUsages.secondary2DAxis, out secondaryAxis);
-        if (stickInput.sqrMagnitude <= rightControllerLookDeadzone * rightControllerLookDeadzone &&
-            hasSecondaryAxis && secondaryAxis.sqrMagnitude > stickInput.sqrMagnitude)
-        {
-            stickInput = secondaryAxis;
-        }
-
-        return hasPrimaryAxis || stickInput != Vector2.zero;
-    }
-
-    void SetCrosshairVisible(bool visible)
-    {
-        if (crosshair != null)
-            crosshair.gameObject.SetActive(visible && simScreen != null && simScreen.gameObject.activeInHierarchy);
-    }
-
-    void UpdateCrosshair(Vector2 viewportPosition)
-    {
-        if (simScreen == null) return;
-
         Rect screenRect = simScreen.rect;
-        float horizontalMargin = crosshairLength * 0.5f;
-        float verticalMargin = crosshairLength * 0.5f;
-        float x = Mathf.Lerp(screenRect.xMin, screenRect.xMax, viewportPosition.x);
-        float y = Mathf.Lerp(screenRect.yMin, screenRect.yMax, viewportPosition.y);
+        mixed3DPointer.anchoredPosition = new Vector2(
+            Mathf.Lerp(screenRect.xMin, screenRect.xMax, mixed3DPointerViewport.x),
+            Mathf.Lerp(screenRect.yMin, screenRect.yMax, mixed3DPointerViewport.y));
+        mixed3DPointer.SetAsLastSibling();
+        SetMixed3DPointerVisible(true);
+    }
 
-        crosshair.anchoredPosition = new Vector2(
-            Mathf.Clamp(x, screenRect.xMin + horizontalMargin, screenRect.xMax - horizontalMargin),
-            Mathf.Clamp(y, screenRect.yMin + verticalMargin, screenRect.yMax - verticalMargin));
-        SetCrosshairVisible(true);
+    void SetMixed3DPointerVisible(bool visible)
+    {
+        if (mixed3DPointer != null)
+        {
+            mixed3DPointer.gameObject.SetActive(
+                visible && mixed3DMouseMode && simScreen != null && simScreen.gameObject.activeInHierarchy);
+        }
     }
 
     void UpdateVirtualPointer(Vector3 screenWorldPosition, PointerEventData sourceEvent)
@@ -791,22 +726,21 @@ public class SimulatedPlayer : MonoBehaviour
     void UpdateVirtualPointerAtViewport(
         Vector2 pointerViewport,
         PointerEventData sourceEvent,
-        Vector2? forcedPixelDelta = null)
+        Vector2? forcedPixelDelta = null,
+        bool smoothPointer = true)
     {
         if (simCamera == null)
             return;
 
-        pointerViewport = ClampCrosshairViewport(pointerViewport);
-        currentPointerViewport = pointerViewport;
-        hasCurrentPointerViewport = true;
+        pointerViewport = ClampVirtualPointerViewport(pointerViewport);
 
         EnsureVirtualPointerData(sourceEvent);
         if (virtualPointerData == null)
             return;
 
-        // Smooth the controller ray before using it for the crosshair and drag
-        // delta. The simulated camera is controlled independently by the stick.
-        if (!hasSmoothedPointerViewport)
+        // Controller rays benefit from smoothing. Physical mouse input should
+        // track the on-screen cursor exactly without adding visual latency.
+        if (!smoothPointer || !hasSmoothedPointerViewport)
         {
             smoothedPointerViewport = pointerViewport;
             hasSmoothedPointerViewport = true;
@@ -817,27 +751,30 @@ public class SimulatedPlayer : MonoBehaviour
             smoothedPointerViewport = Vector2.Lerp(smoothedPointerViewport, pointerViewport, smoothing);
         }
 
-        // --- 1. CROSSHAIR MOVEMENT AND DRAG DELTA ---
+        // --- 1. POINTER MOVEMENT AND DRAG DELTA ---
         Vector2 pointerDelta = Vector2.zero;
         if (hasLastPointerViewport)
         {
             pointerDelta = smoothedPointerViewport - lastPointerViewport;
 
-            Vector2 deadzonePixelDelta = pointerDelta * new Vector2(
-                simCamera.targetTexture != null ? simCamera.targetTexture.width : simCamera.pixelWidth,
-                simCamera.targetTexture != null ? simCamera.targetTexture.height : simCamera.pixelHeight);
+            if (smoothPointer)
+            {
+                Vector2 deadzonePixelDelta = pointerDelta * new Vector2(
+                    simCamera.targetTexture != null ? simCamera.targetTexture.width : simCamera.pixelWidth,
+                    simCamera.targetTexture != null ? simCamera.targetTexture.height : simCamera.pixelHeight);
 
-            if (deadzonePixelDelta.sqrMagnitude < pointerDeadzonePixels * pointerDeadzonePixels)
-                pointerDelta = Vector2.zero;
-            
-            // Ignore implausibly large tracking jumps.
-            if (pointerDelta.sqrMagnitude >= 0.01f)
-                pointerDelta = Vector2.zero;
+                if (deadzonePixelDelta.sqrMagnitude < pointerDeadzonePixels * pointerDeadzonePixels)
+                    pointerDelta = Vector2.zero;
+
+                // Ignore implausibly large controller-tracking jumps.
+                if (pointerDelta.sqrMagnitude >= 0.01f)
+                    pointerDelta = Vector2.zero;
+            }
         }
         lastPointerViewport = smoothedPointerViewport;
         hasLastPointerViewport = true;
 
-        // --- 2. CROSSHAIR-LOCKED RAYCAST INTERACTION ---
+        // --- 2. POINTER RAYCAST INTERACTION ---
         Vector2 interactionViewport = smoothedPointerViewport;
         Vector2 virtualPosition = ViewportToPixelPosition(interactionViewport);
         
@@ -849,7 +786,11 @@ public class SimulatedPlayer : MonoBehaviour
             pointerPixelDelta = forcedPixelDelta.Value;
         virtualPointerData.delta = hasVirtualPosition ? pointerPixelDelta : Vector2.zero;
         hasVirtualPosition = true;
-        UpdateCrosshair(smoothedPointerViewport);
+        if (mixed3DMouseMode)
+        {
+            mixed3DPointerViewport = smoothedPointerViewport;
+            UpdateMixed3DPointerVisual();
+        }
 
         List<RaycastResult> results = new List<RaycastResult>();
         if (simulatedCanvasRaycaster != null)
@@ -886,8 +827,8 @@ public class SimulatedPlayer : MonoBehaviour
                 ExecuteEvents.ExecuteHierarchy(virtualHoveredObject, virtualPointerData, ExecuteEvents.pointerEnterHandler);
         }
 
-        // Keep sending drag updates to the object that received pointer-down. This
-        // gives draggable 3D objects pointer capture while the crosshair is held.
+        // Keep sending drag updates to the object that received pointer-down.
+        // This gives draggable 3D objects pointer capture while the mouse is held.
         GameObject moveTarget = virtualPointerPressed && virtualPressedObject != null
             ? virtualPressedObject
             : virtualHoveredObject;
@@ -949,18 +890,21 @@ public class SimulatedPlayer : MonoBehaviour
         return foundHit;
     }
 
-    Vector2 ClampCrosshairViewport(Vector2 viewportPosition)
+    Vector2 ClampVirtualPointerViewport(Vector2 viewportPosition)
     {
         if (simScreen == null || simScreen.rect.width <= 0f || simScreen.rect.height <= 0f)
             return new Vector2(Mathf.Clamp01(viewportPosition.x), Mathf.Clamp01(viewportPosition.y));
 
+        if (!mixed3DMouseMode || mixed3DPointer == null)
+            return new Vector2(Mathf.Clamp01(viewportPosition.x), Mathf.Clamp01(viewportPosition.y));
+
         Rect screenRect = simScreen.rect;
-        float horizontalMargin = Mathf.Clamp01(crosshairLength / screenRect.width * 0.5f);
-        float verticalMargin = Mathf.Clamp01(crosshairLength / screenRect.height * 0.5f);
+        float pointerWidth = Mathf.Clamp01(mixed3DPointer.rect.width / screenRect.width);
+        float pointerHeight = Mathf.Clamp01(mixed3DPointer.rect.height / screenRect.height);
 
         return new Vector2(
-            Mathf.Clamp(viewportPosition.x, horizontalMargin, 1f - horizontalMargin),
-            Mathf.Clamp(viewportPosition.y, verticalMargin, 1f - verticalMargin));
+            Mathf.Clamp(viewportPosition.x, 0f, 1f - pointerWidth),
+            Mathf.Clamp(viewportPosition.y, pointerHeight, 1f));
     }
 
     void PressVirtualPointer(PointerEventData sourceEvent)
@@ -1016,6 +960,51 @@ public class SimulatedPlayer : MonoBehaviour
         virtualPointerData.eligibleForClick = false;
         virtualPressedObject = null;
         virtualPointerPressed = false;
+    }
+
+    bool TryGetVirtualBrainTarget(out BrainOrbit brain)
+    {
+        brain = null;
+        if (!hasVirtualRaycast || virtualRaycast.gameObject == null)
+            return false;
+
+        brain = virtualRaycast.gameObject.GetComponentInParent<BrainOrbit>();
+        return brain != null;
+    }
+
+    void ResetMixed3DBrain()
+    {
+        if (TryGetVirtualBrainTarget(out BrainOrbit brain))
+        {
+            brain.ResetRotation();
+            return;
+        }
+
+        // Preserve the former right-click reset behavior even when the new
+        // movable pointer is no longer directly over the single active brain.
+        brain = FindFirstObjectByType<BrainOrbit>();
+        if (brain != null)
+            brain.ResetRotation();
+    }
+
+    void ClearVirtualHover()
+    {
+        if (virtualHoveredObject != null && virtualPointerData != null)
+        {
+            ExecuteEvents.ExecuteHierarchy(
+                virtualHoveredObject, virtualPointerData, ExecuteEvents.pointerExitHandler);
+        }
+
+        virtualHoveredObject = null;
+        hasVirtualRaycast = false;
+        virtualRaycast = default;
+    }
+
+    void ResetVirtualPointerTracking()
+    {
+        hasVirtualPosition = false;
+        hasLastPointerViewport = false;
+        hasSmoothedPointerViewport = false;
     }
 
     bool TryGetSimulatedViewport(Vector3 screenWorldPosition, out Vector2 viewportPosition)
@@ -1091,15 +1080,8 @@ public class SimulatedPlayer : MonoBehaviour
         isPointerOverScreen = false;
         ReleaseVirtualPointer(false);
         suppressNextPointerClick = false;
-        if (virtualHoveredObject != null && virtualPointerData != null)
-            ExecuteEvents.ExecuteHierarchy(virtualHoveredObject, virtualPointerData, ExecuteEvents.pointerExitHandler);
-            
-        virtualHoveredObject = null;
-        hasVirtualRaycast = false;
-        hasVirtualPosition = false;
-        hasLastPointerViewport = false;
-        hasSmoothedPointerViewport = false;
-        hasCurrentPointerViewport = false;
+        ClearVirtualHover();
+        ResetVirtualPointerTracking();
     }
 
     void OnScreenPointerClick(PointerEventData eventData)
@@ -1159,6 +1141,17 @@ public class SimulatedPlayer : MonoBehaviour
     float NormalizeAngle(float angle)
     {
         return Mathf.Repeat(angle + 180f, 360f) - 180f;
+    }
+
+    void OnDestroy()
+    {
+        if (mouseArrowSprite == null)
+            return;
+
+        Texture2D texture = mouseArrowSprite.texture;
+        Destroy(mouseArrowSprite);
+        if (texture != null)
+            Destroy(texture);
     }
 
     sealed class ScreenPointerRelay : MonoBehaviour,
