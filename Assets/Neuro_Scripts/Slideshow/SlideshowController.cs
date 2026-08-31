@@ -115,6 +115,7 @@ public class SlideshowController : MonoBehaviour
                 instructionLayout.SetActive(false);
                 questionText.text = slide.question;
                 questionGraphic.sprite = slide.questionGraphic;
+                ConfigureQuestionGraphicForCurrentMode();
                 break;
 
             case SlideType.Infographic:
@@ -122,18 +123,82 @@ public class SlideshowController : MonoBehaviour
                 questionLayout.SetActive(false);
                 instructionLayout.SetActive(false);
                 infographic.sprite = slide.infographic;
-                // Block brain picture if VR mode
-                if (GameManager.Instance.CurrentMode() == GameModes.MIXED_3D || GameManager.Instance.CurrentMode() == GameModes.VIRTUAL_3D){
-                    graphicBlocker.gameObject.SetActive(true);
-                }
-                else{
-                    graphicBlocker.gameObject.SetActive(false);
-                }
+                ConfigureInfographicGraphicForCurrentMode();
                 break;
         }
 
         // Start the timer
         slideTimer.StartTimer(slide.timeLimit);
+    }
+
+    void ConfigureQuestionGraphicForCurrentMode()
+    {
+        GameModes mode = GameManager.Instance.CurrentMode();
+        bool showGraphic = mode == GameModes.VIRTUAL_3D ||
+                           mode == GameModes.MIXED_3D ||
+                           mode == GameModes.MIXED_2D;
+        questionGraphic.gameObject.SetActive(showGraphic);
+
+        if (!showGraphic || questionGraphic.sprite == null)
+            return;
+
+        // The MainScene slideshow instances contain stale overrides from the
+        // question-image prefab change: this panel is collapsed to zero size
+        // and the child AspectRatioFitter is serialized with a NaN ratio.
+        // Restore the prefab layout when study-mode quiz slides need the image.
+        RectTransform graphicRect = questionGraphic.rectTransform;
+        RectTransform panelRect = graphicRect.parent as RectTransform;
+        if (panelRect != null)
+        {
+            panelRect.anchorMin = new Vector2(.1f, .1f);
+            panelRect.anchorMax = new Vector2(.45f, .6f);
+            panelRect.anchoredPosition = new Vector2(8.8f, 11.1f);
+            panelRect.sizeDelta = new Vector2(0f, 28.5f);
+        }
+
+        graphicRect.anchorMin = new Vector2(.5f, .5f);
+        graphicRect.anchorMax = new Vector2(.5f, .5f);
+        graphicRect.anchoredPosition = Vector2.zero;
+        graphicRect.sizeDelta = new Vector2(0f, 150f);
+
+        AspectRatioFitter fitter = questionGraphic.GetComponent<AspectRatioFitter>();
+        if (fitter != null)
+        {
+            Rect spriteRect = questionGraphic.sprite.rect;
+            fitter.aspectRatio = spriteRect.height > 0f
+                ? spriteRect.width / spriteRect.height
+                : 1f;
+            fitter.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
+        }
+
+        if (panelRect != null)
+            LayoutRebuilder.ForceRebuildLayoutImmediate(panelRect);
+    }
+
+    void ConfigureInfographicGraphicForCurrentMode()
+    {
+        GameModes mode = GameManager.Instance.CurrentMode();
+        bool hideGraphic = mode == GameModes.VIRTUAL_3D || mode == GameModes.MIXED_3D;
+        graphicBlocker.gameObject.SetActive(hideGraphic);
+
+        if (!hideGraphic)
+            return;
+
+        // Infographics are full-slide PNGs, so hide their embedded brain art
+        // with a stable right-side mask. Keep the mask above the infographic
+        // image and below the Next button in the sibling render order.
+        graphicBlocker.enabled = true;
+        graphicBlocker.color = Color.black;
+
+        RectTransform blockerRect = graphicBlocker.rectTransform;
+        blockerRect.anchorMin = new Vector2(.445f, 0f);
+        blockerRect.anchorMax = new Vector2(1f, .84f);
+        blockerRect.offsetMin = Vector2.zero;
+        blockerRect.offsetMax = Vector2.zero;
+        blockerRect.localScale = Vector3.one;
+
+        int infographicIndex = infographic.transform.GetSiblingIndex();
+        blockerRect.SetSiblingIndex(infographicIndex + 1);
     }
 
     // Called by buttons/timer to advance slideshow
