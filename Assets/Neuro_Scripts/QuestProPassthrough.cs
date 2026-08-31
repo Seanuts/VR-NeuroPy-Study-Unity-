@@ -39,12 +39,25 @@ public static class QuestProPassthrough
     static Camera simulatedCamera;
     static Transform simulatedPlayerTransform;
     static int isolatedLayer = -1;
-    static bool passthroughLayerObjectWasActive;
-    static bool passthroughLayerWasEnabled;
-    static bool previousManagerPassthroughEnabled;
-    static bool managerPassthroughStateWasCached;
     static bool isEnabled;
     static bool hasLoggedUnavailable;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetStaticState()
+    {
+        Camera.onPreRender -= ForceTransparentCamera;
+        layerStates.Clear();
+        cameraStates.Clear();
+        graphicStates.Clear();
+        layerStateObjects.Clear();
+        passthroughLayer = null;
+        passthroughManager = null;
+        simulatedCamera = null;
+        simulatedPlayerTransform = null;
+        isolatedLayer = -1;
+        isEnabled = false;
+        hasLoggedUnavailable = false;
+    }
 
     public static void SetEnabled(
         bool enabled,
@@ -56,8 +69,10 @@ public static class QuestProPassthrough
     {
         if (!enabled)
         {
-            if (isEnabled)
-                Disable();
+            // Virtual modes own an explicit opaque state. Do not restore the
+            // scene's serialized passthrough state here: MainScene may contain
+            // an enabled manager/layer so mixed modes can opt into it later.
+            Disable();
             return;
         }
 
@@ -103,14 +118,6 @@ public static class QuestProPassthrough
             return;
         }
 
-        object previousManagerValue;
-        managerPassthroughStateWasCached = TryGetMemberValue(
-            passthroughManager,
-            "isInsightPassthroughEnabled",
-            out previousManagerValue) && previousManagerValue is bool;
-        if (managerPassthroughStateWasCached)
-            previousManagerPassthroughEnabled = (bool)previousManagerValue;
-
         if (!SetMemberValue(passthroughManager, "isInsightPassthroughEnabled", true))
         {
             LogUnavailableOnce();
@@ -133,18 +140,12 @@ public static class QuestProPassthrough
 
         if (passthroughLayer == null)
         {
-            SetMemberValue(
-                passthroughManager,
-                "isInsightPassthroughEnabled",
-                managerPassthroughStateWasCached && previousManagerPassthroughEnabled);
+            SetMemberValue(passthroughManager, "isInsightPassthroughEnabled", false);
             passthroughManager = null;
-            managerPassthroughStateWasCached = false;
             LogUnavailableOnce();
             return;
         }
 
-        passthroughLayerObjectWasActive = passthroughLayer.gameObject.activeSelf;
-        passthroughLayerWasEnabled = passthroughLayer.enabled;
         SetMemberEnumValue(passthroughLayer, "overlayType", "Underlay");
         SetMemberValue(passthroughLayer, "hidden", false);
         passthroughLayer.gameObject.SetActive(true);
@@ -159,23 +160,41 @@ public static class QuestProPassthrough
 
         RestoreSceneIsolation();
 
-        if (passthroughLayer != null)
-        {
-            passthroughLayer.enabled = passthroughLayerWasEnabled;
-            passthroughLayer.gameObject.SetActive(passthroughLayerObjectWasActive);
-        }
-
-        if (passthroughManager != null)
-        {
-            SetMemberValue(
-                passthroughManager,
-                "isInsightPassthroughEnabled",
-                managerPassthroughStateWasCached && previousManagerPassthroughEnabled);
-        }
+        // Disable every layer rather than only the one used by this helper.
+        // A transparent material (for example cupboard glass) can reveal any
+        // active passthrough underlay even when the rest of the ward renders.
+        SetAllPassthroughLayersEnabled(false);
+        SetAllPassthroughManagersEnabled(false);
 
         passthroughLayer = null;
         passthroughManager = null;
-        managerPassthroughStateWasCached = false;
+    }
+
+    static void SetAllPassthroughLayersEnabled(bool enabled)
+    {
+        Type layerType = FindType("OVRPassthroughLayer");
+        if (layerType == null)
+            return;
+
+        foreach (Component component in FindComponents(layerType))
+        {
+            Behaviour layer = component as Behaviour;
+            if (layer == null)
+                continue;
+
+            SetMemberValue(layer, "hidden", !enabled);
+            layer.enabled = enabled;
+        }
+    }
+
+    static void SetAllPassthroughManagersEnabled(bool enabled)
+    {
+        Type managerType = FindType("OVRManager");
+        if (managerType == null)
+            return;
+
+        foreach (Component manager in FindComponents(managerType))
+            SetMemberValue(manager, "isInsightPassthroughEnabled", enabled);
     }
 
     static void RestoreSceneIsolation()
@@ -400,13 +419,19 @@ public static class QuestProPassthrough
 
     static Component FindComponent(Type componentType)
     {
+        foreach (Component component in FindComponents(componentType))
+            return component;
+
+        return null;
+    }
+
+    static IEnumerable<Component> FindComponents(Type componentType)
+    {
         foreach (MonoBehaviour behaviour in UnityEngine.Object.FindObjectsOfType<MonoBehaviour>(true))
         {
             if (behaviour != null && componentType.IsAssignableFrom(behaviour.GetType()))
-                return behaviour;
+                yield return behaviour;
         }
-
-        return null;
     }
 
     static bool IsInHierarchy(Transform child, Transform possibleParent)
@@ -467,31 +492,6 @@ public static class QuestProPassthrough
             return true;
         }
 
-        return false;
-    }
-
-    static bool TryGetMemberValue(object target, string memberName, out object value)
-    {
-        Type type = target.GetType();
-        PropertyInfo property = type.GetProperty(
-            memberName,
-            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-        if (property != null && property.CanRead)
-        {
-            value = property.GetValue(target, null);
-            return true;
-        }
-
-        FieldInfo field = type.GetField(
-            memberName,
-            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-        if (field != null)
-        {
-            value = field.GetValue(target);
-            return true;
-        }
-
-        value = null;
         return false;
     }
 
