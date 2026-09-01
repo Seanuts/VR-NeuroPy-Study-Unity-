@@ -45,6 +45,7 @@ public class BrainOrbit : MonoBehaviour,
     Collider selectionSphereCollider;
     Material selectionSphereMaterial;
     bool joystickActionEnabled;
+    bool wasRightControllerAPressed;
 
     private void Awake()
     {
@@ -70,6 +71,7 @@ public class BrainOrbit : MonoBehaviour,
         momentumDegreesPerSecond = Vector3.zero;
 
         SetJoystickActionEnabled(false);
+        wasRightControllerAPressed = false;
 
         if (resetButtonAction != null)
         {
@@ -85,6 +87,7 @@ public class BrainOrbit : MonoBehaviour,
         SetJoystickActionEnabled(isVirtual3D && rightJoystickAction != null &&
                                  rightJoystickAction.action != null);
         SetDebugSelectionSphereVisible(isMixed3D);
+        UpdateVirtual3DResetInput(isVirtual3D);
 
         if (isMixed3D && !isMouseOrbiting)
             ApplyMomentum();
@@ -113,7 +116,8 @@ public class BrainOrbit : MonoBehaviour,
 
     private void OnResetPressed(InputAction.CallbackContext context)
     {
-        ResetRotation();
+        if (IsVirtual3DMode())
+            ResetRotation();
     }
 
     public void OnPointerDown(PointerEventData eventData)
@@ -277,6 +281,20 @@ public class BrainOrbit : MonoBehaviour,
         }
 
         return hasPrimaryAxis || stickInput != Vector2.zero;
+    }
+
+    void UpdateVirtual3DResetInput(bool isVirtual3D)
+    {
+        XRInputDevice rightController = XRInputDevices.GetDeviceAtXRNode(XRNode.RightHand);
+        bool isAPressed = rightController.isValid &&
+                          rightController.TryGetFeatureValue(
+                              XRCommonUsages.primaryButton, out bool primaryButtonPressed) &&
+                          primaryButtonPressed;
+
+        if (isVirtual3D && isAPressed && !wasRightControllerAPressed)
+            ResetRotation();
+
+        wasRightControllerAPressed = isAPressed;
     }
 
     void SetDebugSelectionSphereVisible(bool visible)
