@@ -21,4 +21,4 @@ MonoBehaviour:
   curRegion: 0
   makeTransparent: 0
   instructionGraphic: {fileID: 21300000, guid: b45029851adf9cd4fb430c4cd80c372f, type: 3}
-  skippable: 0
+  skippable: 1

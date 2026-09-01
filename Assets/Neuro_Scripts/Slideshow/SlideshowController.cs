@@ -195,6 +195,7 @@ public class SlideshowController : MonoBehaviour
         blockerRect.anchorMax = new Vector2(1f, .84f);
         blockerRect.offsetMin = Vector2.zero;
         blockerRect.offsetMax = Vector2.zero;
+        blockerRect.anchoredPosition += new Vector2(2f, -2f);
         blockerRect.localScale = Vector3.one;
 
         int infographicIndex = infographic.transform.GetSiblingIndex();

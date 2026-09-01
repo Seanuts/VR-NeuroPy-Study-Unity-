@@ -39,7 +39,6 @@ public class BrainHighlighter : MonoBehaviour
     [SerializeField] Material brainMaterial;
     [SerializeField] Material transparentMaterial;
     [SerializeField] Material highlightMaterial;
-    private Material runtimeTransparentMaterial;
 
     // Create lookup table for fast BrainRegion->GameObject mapping
     public void CreateBrainMapping(){ 
@@ -62,74 +61,6 @@ public class BrainHighlighter : MonoBehaviour
     {
         // Convert BRM to dict for fast lookups
         CreateBrainMapping();
-        runtimeTransparentMaterial = CreateRuntimeTransparentMaterial();
-    }
-
-    // The transparent shader is intentionally used for slides that highlight
-    // structures inside the brain. Its asset defaults leave the surface black,
-    // specular-preserving, and depth-writing, which makes it inherit the blue
-    // Virtual3D environment. Use a runtime copy so the shared project material
-    // is not mutated while playtesting.
-    private Material CreateRuntimeTransparentMaterial()
-    {
-        if (transparentMaterial == null)
-            return null;
-
-        Material material = new Material(transparentMaterial)
-        {
-            name = transparentMaterial.name + " (Runtime Neutral)"
-        };
-
-        Color shellColor = new Color(0.75f, 0.55f, 0.55f, 1f);
-        if (brainMaterial != null)
-        {
-            if (brainMaterial.HasProperty("_BaseColor"))
-                shellColor = brainMaterial.GetColor("_BaseColor");
-            else if (brainMaterial.HasProperty("_Color"))
-                shellColor = brainMaterial.GetColor("_Color");
-        }
-        shellColor.a = 1f;
-
-        SetColorIfPresent(material, "_OutlineColor", shellColor);
-        SetColorIfPresent(material, "_BaseColor", shellColor);
-        SetColorIfPresent(material, "_Color", shellColor);
-        SetColorIfPresent(material, "_SpecColor", Color.black);
-
-        // The shader graph's intended Fresnel default is 3, but the serialized
-        // material overrides it with 0. Restore the intended transparent shell
-        // and prevent sky/environment reflections from tinting it blue.
-        SetFloatIfPresent(material, "_FresnelPower", 3f);
-        SetFloatIfPresent(material, "_EnvironmentReflections", 0f);
-        SetFloatIfPresent(material, "_SpecularHighlights", 0f);
-        SetFloatIfPresent(material, "_BlendModePreserveSpecular", 0f);
-        SetFloatIfPresent(
-            material,
-            "_SrcBlend",
-            (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
-        SetFloatIfPresent(
-            material,
-            "_DstBlend",
-            (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-        SetFloatIfPresent(material, "_ReceiveShadows", 0f);
-        SetFloatIfPresent(material, "_CastShadows", 0f);
-        SetFloatIfPresent(material, "_ZWrite", 0f);
-        SetFloatIfPresent(material, "_ZWriteControl", 0f);
-        material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-        material.SetShaderPassEnabled("ShadowCaster", false);
-
-        return material;
-    }
-
-    private static void SetColorIfPresent(Material material, string property, Color value)
-    {
-        if (material.HasProperty(property))
-            material.SetColor(property, value);
-    }
-
-    private static void SetFloatIfPresent(Material material, string property, float value)
-    {
-        if (material.HasProperty(property))
-            material.SetFloat(property, value);
     }
 
     // Configures interactive brain for the current slide
@@ -147,11 +78,7 @@ public class BrainHighlighter : MonoBehaviour
                 this.gameObject.SetActive(true);
                 if (slide.makeTransparent)
                 {
-                    SetMaterialRecursive(
-                        brainModel,
-                        runtimeTransparentMaterial != null
-                            ? runtimeTransparentMaterial
-                            : transparentMaterial);
+                    SetMaterialRecursive(brainModel, transparentMaterial);
                 }
                 else
                 {
@@ -266,12 +193,6 @@ public class BrainHighlighter : MonoBehaviour
         }
         // Return null if no material was found anywhere in the hierarchy
         return null;
-    }
-
-    private void OnDestroy()
-    {
-        if (runtimeTransparentMaterial != null)
-            Destroy(runtimeTransparentMaterial);
     }
 
 }
