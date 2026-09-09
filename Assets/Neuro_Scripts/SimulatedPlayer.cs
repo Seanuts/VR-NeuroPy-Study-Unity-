@@ -50,7 +50,7 @@ public class SimulatedPlayer : MonoBehaviour
     GameObject virtualHoveredObject;
     PointerEventData virtualPointerData;
     RaycastResult virtualRaycast;
-    
+
     // VR Pointer Tracking
     Vector2 lastPointerViewport;
     Vector2 smoothedPointerViewport;
@@ -132,6 +132,11 @@ public class SimulatedPlayer : MonoBehaviour
         if (ActiveSimulatedCamera == simCamera)
             ActiveSimulatedCamera = null;
 
+        // Hand the OS cursor back unlocked and visible. The in-game modes keep it
+        // Locked/hidden for mouse-look; leaving it that way on teardown breaks the
+        // next scene's UI (e.g. ThankYou buttons get no movable pointer).
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 
     void Start()
@@ -149,7 +154,9 @@ public class SimulatedPlayer : MonoBehaviour
         bool isMixed3D = IsMixed3DMode();
         SetMixed3DMouseMode(isMixed3D);
 
-        if (!externalMouseMode && !isMixed3D)
+        // Mixed2D is the only mode that drives the real system pointer; hide the
+        // OS cursor in every other mode (desktop mouse-look and Mixed3D alike).
+        if (!externalMouseMode)
             HideDesktopCursor();
 
         if (externalMouseMode)
@@ -182,11 +189,7 @@ public class SimulatedPlayer : MonoBehaviour
     void SetExternalMouseMode(bool enabled)
     {
         if (externalMouseMode == enabled)
-        {
-            if (!enabled)
-                HideDesktopCursor();
             return;
-        }
 
         externalMouseMode = enabled;
         ReleaseMousePointer(false);
@@ -448,7 +451,8 @@ public class SimulatedPlayer : MonoBehaviour
         return RectTransformUtility.WorldToScreenPoint(canvasCamera, worldPosition);
     }
 
-    void CreateMouseCursor(){ //create mouse cursor
+    void CreateMouseCursor()
+    { //create mouse cursor
         if (mouseCursor == null)
         {
             mouseCursor = new GameObject("DesktopMouseCursor", typeof(RectTransform), typeof(Image)).GetComponent<RectTransform>();
@@ -472,7 +476,8 @@ public class SimulatedPlayer : MonoBehaviour
         mouseCursor.SetAsLastSibling();
     }
 
-    Sprite GetMouseArrowSprite(){ //arrow shared by the separate Mixed2D and Mixed3D cursor objects
+    Sprite GetMouseArrowSprite()
+    { //arrow shared by the separate Mixed2D and Mixed3D cursor objects
         if (mouseArrowSprite != null)
             return mouseArrowSprite;
 
@@ -777,7 +782,7 @@ public class SimulatedPlayer : MonoBehaviour
         // --- 2. POINTER RAYCAST INTERACTION ---
         Vector2 interactionViewport = smoothedPointerViewport;
         Vector2 virtualPosition = ViewportToPixelPosition(interactionViewport);
-        
+
         virtualPointerData.position = virtualPosition;
         Vector2 pointerPixelDelta = pointerDelta * new Vector2(
             simCamera.targetTexture != null ? simCamera.targetTexture.width : simCamera.pixelWidth,
@@ -1053,7 +1058,7 @@ public class SimulatedPlayer : MonoBehaviour
         isPointerOverScreen = true;
         hasLastPointerViewport = false;
         hasSmoothedPointerViewport = false;
-        
+
         if (TryGetPointerWorldPosition(eventData, out Vector3 worldPosition))
         {
             UpdateVirtualPointer(worldPosition, eventData);
