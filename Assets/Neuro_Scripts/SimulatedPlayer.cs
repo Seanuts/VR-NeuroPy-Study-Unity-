@@ -200,8 +200,12 @@ public class SimulatedPlayer : MonoBehaviour
         {
             ConfigureExternalMouseCanvas();
 
-            Cursor.visible = true;
-            Cursor.lockState = CursorLockMode.None;
+            // Lock+hide the hardware cursor and drive everything from mouse delta
+            // (same as Mixed3D). The game draws its own arrow, so the real OS
+            // cursor is redundant and would otherwise trail out of the Game view
+            // into the Inspector while testing in the editor, starving the delta.
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
 
             EventSystem eventSystem = EventSystem.current;
             if (eventSystem != null)
