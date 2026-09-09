@@ -1,46 +1,50 @@
 using UnityEngine;
-using Meta.XR.Util;
 
 public class Tracker : MonoBehaviour
 {
     [SerializeField] bool debugMode = false;
 
-    public GameObject leftEye;
-    public GameObject rightEye;
-
     public GameObject leftBeam;
     public GameObject rightBeam;
 
-    [SerializeField] private OVRFaceExpressions face;
-    private float[] faceBuf = new float[(int)OVRFaceExpressions.FaceExpression.Max];
+    const float SAMPLE_INTERVAL = 1f / 30f; // Quest Pro eye/face tracking is hardware-capped at ~30Hz
+    float sampleTimer = 0f;
+
+    OVRPlugin.EyeGazesState eyeGazesState;
+    OVRPlugin.FaceState faceState;
+    float[] faceBuf = new float[(int)OVRPlugin.FaceExpression2.Max];
 
     void Awake()
     {
-        if (debugMode)
-        {
-            leftBeam.SetActive(true);
-            rightBeam.SetActive(true);
-        }
-        else
-        {
-            leftBeam.SetActive(false);
-            rightBeam.SetActive(false);
-        }
+        leftBeam.SetActive(debugMode);
+        rightBeam.SetActive(debugMode);
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (debugMode) return;
 
-        // Eyes
-        DataManager.Instance.LogEyeDataLeft(leftEye.transform.localPosition, leftEye.transform.localRotation);
-        DataManager.Instance.LogEyeDataRight(rightEye.transform.localPosition, rightEye.transform.localRotation);
+        sampleTimer += Time.deltaTime;
+        if (sampleTimer < SAMPLE_INTERVAL) return;
+        sampleTimer -= SAMPLE_INTERVAL; // subtract, not reset, to avoid drift
 
-        // Face
-        if (face.FaceTrackingEnabled && face.ValidExpressions)
+        // Eyes (Layer 2 — raw runtime pose via OVRPlugin)
+        if (OVRPlugin.GetEyeGazesState(OVRPlugin.Step.Render, -1, ref eyeGazesState))
         {
-            face.CopyTo(faceBuf, 0);
+            var left = eyeGazesState.EyeGazes[0].Pose.ToOVRPose();
+            var right = eyeGazesState.EyeGazes[1].Pose.ToOVRPose();
+            DataManager.Instance.LogEyeDataLeft(left.position, left.orientation);
+            DataManager.Instance.LogEyeDataRight(right.position, right.orientation);
+        }
+        else
+        {
+            Debug.LogError("Error during eye tracking");
+        }
+
+        // Face (Layer 2 — raw runtime weights via OVRPlugin)
+        if (OVRPlugin.GetFaceState2(OVRPlugin.Step.Render, -1, ref faceState) && faceState.Status.IsValid)
+        {
+            faceState.ExpressionWeights.CopyTo(faceBuf, 0);
             DataManager.Instance.LogFaceData(faceBuf);
         }
         else
@@ -48,4 +52,4 @@ public class Tracker : MonoBehaviour
             Debug.LogError("Error during face tracking");
         }
     }
-}  
+}
